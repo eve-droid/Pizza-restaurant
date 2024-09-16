@@ -10,3 +10,5 @@ class customer(models.Model):
 
 class delivery(models.Model):
     i=1
+    
+print("Hello world!")
