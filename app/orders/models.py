@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from django.db import models
 
 from app.customers.models import Customer
+from app.discounts.models import Discount
 
 class Pizza(models.Model):
     name = models.CharField(max_length=100)
@@ -24,6 +25,7 @@ class Order(models.Model):
     price = models.IntegerField()
     order_time = models.DateTimeField()
     status = models.CharField(max_length=100)
+    has_discount_code = models.BooleanField(default=False)
 
     def get_total_price(self):
         # Calculate the total price of the order
@@ -35,12 +37,26 @@ class Order(models.Model):
         for drink in self.drinks.all():
             self.price += drink.price
 
-    def apply_discount(self):
         # Apply 10% discount if the customer is eligible
-        if self.cu
-        elif self.customer.is_eligible_for_discount():
+        if self.customer.is_eligible_for_discount():
             self.price = self.price * 0.9
-            self.customer.count_pizza = 0 # Reset the count of pizzas
+            self.customer.count_pizza %= 10 # Reset the count of pizzas
+
+    def apply_discount(self, discount_code):
+        try:
+            discount = Discount.objects.get(discount_code=discount_code)
+            if discount.is_not_expired() and not self.has_discount_code:
+                self.price = self.price * (1 - discount.discount/100)
+                discount.used = True
+                self.has_discount_code = True
+                discount.save()
+            elif self.has_discount_code:
+                raise ValueError('A dicount code has already been applied')
+            elif not discount.is_not_expired():
+                raise ValueError('Discount code has expired')
+        except Discount.DoesNotExist:
+            raise ValueError('Invalid discount code')
+        
 
     def cancel_order(self):
         if self.status == 'Delivered':
@@ -52,8 +68,6 @@ class Order(models.Model):
         else:
             self.status = 'Cancelled'
         
-    
-
 
 class Delivery(models.Model):
     delivery_id = models.IntegerField(primary_key=True)
