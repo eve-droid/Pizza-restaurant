@@ -37,6 +37,13 @@ class Order(models.Model):
         for drink in self.drinks.all():
             self.price += drink.price
 
+        #offer a free pizza and drind if it's customer's birthday
+        if self.customer.birthday == datetime.now().date():
+            if self.pizzas.exists():
+                self.price -= min(pizza.price for pizza in self.pizzas.all())
+            if self.drinks.exists():
+                self.price -= min(drink.price for drink in self.drinks.all())
+
         # Apply 10% discount if the customer is eligible
         if self.customer.is_eligible_for_discount():
             self.price = self.price * 0.9
@@ -66,7 +73,7 @@ class Order(models.Model):
         elif self.order_time + timedelta(minutes=5) < datetime.now():
             raise ValueError('Cannot cancel order after 5 minutes')
         else:
-            self.status = 'Cancelled'
+            self.delete()
         
 
 class Delivery(models.Model):
