@@ -52,17 +52,17 @@ class Order(models.Model):
     def apply_discount(self, discount_code):
         try:
             discount = Discount.objects.get(discount_code=discount_code)
-            if discount.is_not_expired() and not self.has_discount_code:
+            if discount.is_valid() and not self.has_discount_code:
                 self.price = self.price * (1 - discount.discount/100)
                 discount.used = True
                 self.has_discount_code = True
                 discount.save()
             elif self.has_discount_code:
                 raise ValueError('A dicount code has already been applied')
-            elif not discount.is_not_expired():
-                raise ValueError('Discount code has expired')
         except Discount.DoesNotExist:
             raise ValueError('Invalid discount code')
+        
+        return self.price
         
 
     def cancel_order(self):
@@ -76,8 +76,8 @@ class Order(models.Model):
             self.delete()
         
 
-class Delivery(models.Model):
-    delivery_id = models.IntegerField(primary_key=True)
-    order_id = models.IntegerField()
-    delivery_time = models.DateTimeField()
+#class Delivery(models.Model):
+    #delivery_id = models.IntegerField(primary_key=True)
+    #order_id = models.IntegerField()
+    #delivery_time = models.DateTimeField()
 
