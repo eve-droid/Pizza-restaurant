@@ -1,0 +1,92 @@
+[
+    {
+      "model": "orders.pizza",
+      "pk": 1,
+      "fields": {
+        "name": "Margherita",
+        "price": 10.00
+      }
+    },
+
+    {
+      "model": "orders.pizza",
+      "pk": 2,
+      "fields": {
+        "name": "Pepperoni",
+        "price": 12.00
+      }
+    },
+
+    {
+      "model": "orders.pizza",
+      "pk": 3,
+      "fields": {
+        "name": "Vegetarian",
+        "price": 11.00
+      }
+    },
+
+    {
+      "model": "orders.pizza",
+      "pk": 4,
+      "fields": {
+        "name": "Hawaiian",
+        "price": 13.00
+      }
+    },
+
+    {
+      "model": "orders.pizza",
+      "pk": 5,
+      "fields": {
+        "name": "Meat Lovers",
+        "price": 14.00
+      }
+    },
+
+    {
+      "model": "orders.pizza",
+      "pk": 6,
+      "fields": {
+        "name": "Supreme",
+        "price": 15.00
+      }
+    },
+
+    {
+      "model": "orders.pizza",
+      "pk": 7,
+      "fields": {
+        "name": "BBQ Chicken",
+        "price": 16.00
+      }
+    },
+
+    {
+      "model": "orders.pizza",
+      "pk": 8,
+      "fields": {
+        "name": "Seafood",
+        "price": 17.00
+      }
+    },
+
+    {
+      "model": "orders.pizza",
+      "pk": 9,
+      "fields": {
+        "name": "Margarita",
+        "price": 18.00
+      }
+    },
+
+    {
+      "model": "orders.pizza",
+      "pk": 10,
+      "fields": {
+        "name": "Cheese",
+        "price": 19.00
+      }
+    }
+
+]

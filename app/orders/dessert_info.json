@@ -1,0 +1,38 @@
+[
+    {
+      "model": "orders.dessert",
+      "pk": 1,
+      "fields": {
+        "name": "Tiramisu",
+        "price": 5.00
+      }
+    },
+
+    {
+      "model": "orders.dessert",
+      "pk": 2,
+      "fields": {
+        "name": "Ice cream",
+        "price": 3.00
+      }
+    },
+
+    {
+      "model": "orders.dessert",
+      "pk": 3,
+      "fields": {
+        "name": "cake",
+        "price": 5.00
+      }
+    },
+
+    {
+      "model": "orders.dessert",
+      "pk": 4,
+      "fields": {
+        "name": "cookies",
+        "price": 4.50
+      }
+    }
+
+]

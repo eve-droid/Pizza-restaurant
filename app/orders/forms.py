@@ -1,14 +1,14 @@
 from django import forms
-from .models import Order, Customer, Pizza, Drink, Dessert, Discount  # Assuming you have these models
+from .models import Order, Pizza, Drink, Dessert  
 
 class OrderForm(forms.ModelForm):
     class Meta:
         model = Order
-        fields = ['customer', 'pizza', 'drinks', 'desserts', 'discount_code']
+        fields = ['pizza', 'drink', 'dessert', 'discount_code']
 
     pizza = forms.ModelChoiceField(queryset=Pizza.objects.all(), required=True, empty_label="Select your pizza")
-    drinks = forms.ModelChoiceField(queryset=Drink.objects.all(), required=False, empty_label="Select a drink")
-    desserts = forms.ModelChoiceField(queryset=Dessert.objects.all(), required=False, empty_label="Select a dessert")
+    drink = forms.ModelChoiceField(queryset=Drink.objects.all(), required=False, empty_label="Select a drink")
+    dessert = forms.ModelChoiceField(queryset=Dessert.objects.all(), required=False, empty_label="Select a dessert")
     discount_code = forms.CharField(max_length=15, required=False)
 
     
@@ -18,7 +18,7 @@ class OrderForm(forms.ModelForm):
         discount_code = self.cleaned_data.get('discount_code')
 
         try:
-            order.apply_discount(self, discount_code)
+            order.apply_discount(discount_code)
         except ValueError as e:
             raise forms.ValidationError(str(e))
 

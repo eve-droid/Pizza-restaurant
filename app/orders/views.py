@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 from .forms import OrderForm
 
+@login_required(login_url='/login/')
 def create_order(request):
     if request.method == 'POST':
         form = OrderForm(request.POST)
