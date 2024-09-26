@@ -33,7 +33,7 @@ class Order(models.Model):
     drinks = models.ManyToManyField(Drink, blank=True)
     price = models.DecimalField(max_digits=6, decimal_places=2)
     order_time = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=100, choices=Status_Choices, default='Processing')
+    status = models.CharField(max_length=100) ##choices=Status_Choices, default='Processing')
     has_discount_code = models.BooleanField(default=False)
     delivery = models.OneToOneField('Delivery', null=True, blank=True, on_delete=models.SET_NULL)
 
@@ -69,7 +69,7 @@ class Order(models.Model):
                 discount.save()
             elif self.has_discount_code:
                 raise ValueError('A dicount code has already been applied')
-        except Discount.DoesNotExist:
+        except ValueError as e:
             raise ValueError('Invalid discount code')
         
         return self.price
@@ -92,6 +92,9 @@ class Order(models.Model):
             raise ValueError('Cannot cancel order after 5 minutes')
         else:
             self.delete()
+
+    def __str__(self):
+        return f"Order #{self.id} by {self.customer.username}"
     
 
 

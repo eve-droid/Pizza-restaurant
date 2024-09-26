@@ -24,7 +24,8 @@ from django.contrib.auth import views as authentication_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('app.orders.urls')),  # This includes the orders app URLs
+    path('', include('app.customers.urls')),
+    path('', include('app.orders.urls')),  
     path('login/', authentication_views.LoginView.as_view(), name='login'),
     path('logout/', authentication_views.LogoutView.as_view(), name='logout'),
 ]
