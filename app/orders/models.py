@@ -17,6 +17,12 @@ class Drink(models.Model):
 
     
 class Order(models.Model):
+    Status_Choices = [
+        ('Processing', 'Processing'),
+        ('Out for Delivery', 'Out for Delivery'),
+        ('Delivered', 'Delivered'),
+        ('Cancelled', 'Cancelled')
+    ]
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     pizzas = models.ManyToManyField(Pizza)
     desserts = models.ManyToManyField(Dessert, blank=True)
@@ -45,12 +51,12 @@ class Order(models.Model):
         self.status = new_status
         self.save()
 
-    def apply_discount(self):
-        # Apply 10% discount if the customer is eligible
-        if self.cu
-        elif self.customer.is_eligible_for_discount():
-            self.price = self.price * 0.9
-            self.customer.count_pizza = 0 # Reset the count of pizzas
+    #def apply_discount(self):
+        ## Apply 10% discount if the customer is eligible
+        #if self.cu
+        #elif self.customer.is_eligible_for_discount():
+        #    self.price = self.price * 0.9
+        #    self.customer.count_pizza = 0 # Reset the count of pizzas
 
     def cancel_order(self):
         if self.status == 'Delivered':
@@ -65,7 +71,7 @@ class Order(models.Model):
 
 
 class Delivery(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    Delivery_order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='deliveries')
     delivery_time = models.DateTimeField(null=True, blank=True)
 
     def set_delivery_time(self):
