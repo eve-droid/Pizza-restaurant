@@ -7,6 +7,26 @@
 <body>
     <h1>Create a New Order</h1>
 
+    {% if form.errors %}
+        <div style="color: red;">
+            <ul>
+                {% for field, errors in form.errors.items %}
+                    <li>{{ errors|join:", " }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    {% if user.is_authenticated %}
+        <div class="customer-info">
+            <h2>Customer Information</h2>
+            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+        </div>
+    {% else %}
+        <p>Please <a href="{% url 'login' %}">log in</a> to view customer information and place an order.</p>
+    {% endif %}
+
     <form method="POST">
         {% csrf_token %}
         {{ form.as_p }}
