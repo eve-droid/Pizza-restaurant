@@ -8,22 +8,13 @@ class Pizza(models.Model):
     name = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=5, decimal_places=2)
 
-    def __str__(self):
-        return self.name
-
 class Dessert(models.Model):
     name = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=5, decimal_places=2)
 
-    def __str__(self):
-        return self.name
-
 class Drink(models.Model):
     name = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=5, decimal_places=2)
-
-    def __str__(self):
-        return self.name
 
     
 class Order(models.Model):
@@ -39,10 +30,8 @@ class Order(models.Model):
     drinks = models.ManyToManyField(Drink, blank=True)
     price = models.DecimalField(max_digits=6, decimal_places=2)
     order_time = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=100) ##choices=Status_Choices, default='Processing')
-    has_discount_code = models.BooleanField(default=False)
+    status = models.CharField(max_length=100, choices=Status_Choices, default='Processing')
     delivery = models.OneToOneField('Delivery', null=True, blank=True, on_delete=models.SET_NULL)
-
     def get_total_price(self):
         # Calculate the total price of the order
         self.price = 0
@@ -78,7 +67,7 @@ class Order(models.Model):
                     raise ValueError('A dicount code has already been applied')
             except ValueError as e:
                 raise ValueError('Invalid discount code')
-        
+    
         return self.price
     
     def estimate_delivery_time(self):
@@ -91,6 +80,12 @@ class Order(models.Model):
         self.save()
 
 
+    #def apply_discount(self):
+        ## Apply 10% discount if the customer is eligible
+        #if self.cu
+        #elif self.customer.is_eligible_for_discount():
+        #    self.price = self.price * 0.9
+        #    self.customer.count_pizza = 0 # Reset the count of pizzas
 
     def cancel_order(self):
         if self.status == 'Delivered':
@@ -100,10 +95,7 @@ class Order(models.Model):
         elif self.order_time + timedelta(minutes=5) < datetime.now():
             raise ValueError('Cannot cancel order after 5 minutes')
         else:
-            self.delete()
-
-    def __str__(self):
-        return f"Order #{self.id} by {self.customer.username}"
+            self.status = 'Cancelled'
     
 
 
