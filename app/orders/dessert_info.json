@@ -4,7 +4,7 @@
       "pk": 1,
       "fields": {
         "name": "Tiramisu",
-        "price": 5.00
+        "price": 8.00
       }
     },
 
@@ -22,7 +22,7 @@
       "pk": 3,
       "fields": {
         "name": "cake",
-        "price": 5.00
+        "price": 7.50
       }
     },
 
@@ -31,7 +31,7 @@
       "pk": 4,
       "fields": {
         "name": "cookies",
-        "price": 4.50
+        "price": 3.50
       }
     }
 

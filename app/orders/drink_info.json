@@ -4,7 +4,7 @@
       "pk": 1,
       "fields": {
         "name": "Water",
-        "price": 2.50
+        "price": 2.70
       }
     },
 
@@ -31,7 +31,7 @@
       "pk": 4,
       "fields": {
         "name": "Red Bull",
-        "price": 3.00
+        "price": 3.50
       }
     },
 
@@ -40,7 +40,7 @@
       "pk": 5,
       "fields": {
         "name": "Beer",
-        "price": 3.00
+        "price": 5.50
       }
     }
 
