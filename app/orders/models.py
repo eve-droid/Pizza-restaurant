@@ -66,17 +66,18 @@ class Order(models.Model):
             self.customer.count_pizza %= 10 # Reset the count of pizzas
 
     def apply_discount(self, discount_code):
-        try:
-            discount = Discount.objects.get(discount_code=discount_code)
-            if discount.is_valid() and not self.has_discount_code:
-                self.price = self.price * (1 - discount.discount/100)
-                discount.used = True
-                self.has_discount_code = True
-                discount.save()
-            elif self.has_discount_code:
-                raise ValueError('A dicount code has already been applied')
-        except ValueError as e:
-            raise ValueError('Invalid discount code')
+        if discount_code != '':
+            try:
+                discount = Discount.objects.get(discount_code=discount_code)
+                if discount.is_valid() and not self.has_discount_code:
+                    self.price = self.price * (1 - discount.discount/100)
+                    discount.used = True
+                    self.has_discount_code = True
+                    discount.save()
+                elif self.has_discount_code:
+                    raise ValueError('A dicount code has already been applied')
+            except ValueError as e:
+                raise ValueError('Invalid discount code')
         
         return self.price
     
@@ -89,12 +90,7 @@ class Order(models.Model):
         self.status = new_status
         self.save()
 
-    def apply_discount(self):
-        # Apply 10% discount if the customer is eligible
-        if self.cu
-        elif self.customer.is_eligible_for_discount():
-            self.price = self.price * 0.9
-            self.customer.count_pizza = 0 # Reset the count of pizzas
+
 
     def cancel_order(self):
         if self.status == 'Delivered':
