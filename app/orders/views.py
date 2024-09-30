@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+
+from app.customers.models import Customer
 from .forms import OrderForm
 from .models import Delivery, Order
 
@@ -8,11 +10,13 @@ def create_order(request):
     if request.method == 'POST':
         form = OrderForm(request.POST)
         if form.is_valid():
-            form.save()
+            customer_instance = get_object_or_404(Customer, user=request.user)            
+            form.save(customer=customer_instance)
             return redirect('order_success')
     else:
         form = OrderForm()
     return render(request, 'orders/orderForm.html', {'form': form})
+
 
 def order_success(request):
     return render(request, 'orders/orderSuccess.html')
@@ -32,6 +36,7 @@ def start_delivery(request, order_id):
         delivery = Delivery.objects.create(order=order)
         delivery.set_delivery_time()
         order.update_status('Out for Delivery')
+        delivery.save()
     return redirect('track_order', order_id=order_id)
 
 def mark_as_delivered(request, order_id):
