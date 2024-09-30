@@ -67,7 +67,7 @@
       "pk": 8,
       "fields": {
         "name": "Seafood",
-        "price": 17.00
+        "price": 15.00
       }
     },
 
@@ -75,7 +75,7 @@
       "model": "orders.pizza",
       "pk": 9,
       "fields": {
-        "name": "Margarita",
+        "name": "Deluxe",
         "price": 18.00
       }
     },
@@ -84,8 +84,8 @@
       "model": "orders.pizza",
       "pk": 10,
       "fields": {
-        "name": "Cheese",
-        "price": 19.00
+        "name": "Calzone",
+        "price": 14.00
       }
     }
 
