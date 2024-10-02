@@ -4,7 +4,7 @@
       "pk": 1,
       "fields": {
         "name": "Margherita",
-        "price": 10.00
+        "ingredients": "tomato sauce, mozzarella, basil"
       }
     },
 
@@ -13,7 +13,7 @@
       "pk": 2,
       "fields": {
         "name": "Pepperoni",
-        "price": 12.00
+        "ingredients": "tomato sauce, pepperoni, tomato sauce, mozzarella"
       }
     },
 
@@ -22,7 +22,7 @@
       "pk": 3,
       "fields": {
         "name": "Vegetarian",
-        "price": 11.00
+        "ingredients": "tomato sauce, mozzarella, zucchini, eggplant, peppers"
       }
     },
 
@@ -31,7 +31,7 @@
       "pk": 4,
       "fields": {
         "name": "Hawaiian",
-        "price": 13.00
+        "ingredients": "tomato sauce, mozzarella, ham, pineapple"
       }
     },
 
@@ -40,7 +40,7 @@
       "pk": 5,
       "fields": {
         "name": "Meat Lovers",
-        "price": 14.00
+        "ingredients": "tomato sauce, parmesan, mozzarella, ham, pepperoni, bacon, sausage"
       }
     },
 
@@ -49,7 +49,7 @@
       "pk": 6,
       "fields": {
         "name": "Supreme",
-        "price": 15.00
+        "ingredients": "tomato sauce, mozzarella, pepperoni, mushrooms, onions, olives, peppers"
       }
     },
 
@@ -58,7 +58,7 @@
       "pk": 7,
       "fields": {
         "name": "BBQ Chicken",
-        "price": 16.00
+        "ingredients": "tomato sauce, mozzarella, chicken, bacon, onions, spicy BBQ sauce"
       }
     },
 
@@ -67,7 +67,7 @@
       "pk": 8,
       "fields": {
         "name": "Seafood",
-        "price": 15.00
+        "ingredients": "tomato sauce, mozzarella, shrimp, clams, calamari"
       }
     },
 
@@ -76,7 +76,7 @@
       "pk": 9,
       "fields": {
         "name": "Deluxe",
-        "price": 18.00
+        "ingredients": "tomato sauce, mozzarella, pepperoni, mushrooms, onions, olives, peppers"
       }
     },
 
@@ -85,7 +85,7 @@
       "pk": 10,
       "fields": {
         "name": "Calzone",
-        "price": 14.00
+        "ingredients": "tomato sauce, mozzarella, ricotta, ham, salami, pork rings, lard"
       }
     }
 

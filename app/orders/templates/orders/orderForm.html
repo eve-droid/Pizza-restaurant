@@ -1,36 +1,214 @@
+{% load custom_filters %}
+{% load crispy_forms_tags %}
+
+
+
+<!-- Bootstrap CSS -->
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Order</title>
 </head>
 <body>
-    <h1>Create a New Order</h1>
+    <div class="container">
+        <h1>Create a New Order</h1>
 
-    {% if form.errors %}
-        <div style="color: red;">
-            <ul>
-                {% for field, errors in form.errors.items %}
-                    <li>{{ errors|join:", " }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-    {% endif %}
+        <!-- Display Errors -->
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                <ul>
+                    {% for field, errors in form.errors.items %}
+                        <li>{{ errors|join:", " }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
 
-    {% if user.is_authenticated %}
-        <div class="customer-info">
-            <h2>Customer Information</h2>
-            <p><strong>Username:</strong> {{ user.username }}</p>
-            <p><strong>Email:</strong> {{ user.email }}</p>
-        </div>
-    {% else %}
-        <p>Please <a href="{% url 'login' %}">log in</a> to view customer information and place an order.</p>
-    {% endif %}
+        <!-- Customer Info -->
+        {% if user.is_authenticated %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2>Customer Information</h2>
+                </div>
+                <div class="card-body">
+                    <p><strong>Username:</strong> {{ user.username }}</p>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                </div>
+            </div>
+        {% else %}
+            <p>Please <a href="{% url 'login' %}">log in</a> to view customer information and place an order.</p>
+        {% endif %}
 
-    <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Place Order</button>
-    </form>
+        <!-- Order Form -->
+        <form method="POST">
+            {% csrf_token %}
+            {{ order_item_formset.management_form }}
+            {{ order_item_formset|crispy }}
+            <div class="table-responsive">
+                <h2>Pizzas</h2>
+                <table class="table table-bordered table-striped">
+                    <thead class="thead-light">
+                        <tr>
+                            <th scope="col">Pizza</th>
+                            <th scope="col">Ingredients</th>
+                            <th scope="col">Price</th>
+                            <th scope="col">Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pizza in pizzas %}
+                        <tr>
+                            <td>
+                                <strong>{{ pizza.name }}</strong>
+                            </td>
+                            <td>
+                                <strong>{{ pizza.ingredients }}</strong>
+                            </td>
+                            <td>
+                                <span class="fw-bold">{{ pizza.calculate_price }}</span>
+                            </td>
+                            <td>
+                                <input type="number" name="pizzaQuantities[{{ pizza.id }}]" min="0" value="0" class="form-control" data-price="{{ pizza.price }}"/>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <h2>Drinks</h2>
+                <table class="table table-bordered table-striped">
+                    <thead class="thead-light">
+                        <tr>
+                            <th scope="col">Drink</th>
+                            <th scope="col">Price</th>
+                            <th scope="col">Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for drink in drinks %}
+                        <tr>
+                            <td>
+                                <strong>{{ drink.name }}</strong>
+                            </td>
+                            <td>
+                                <span class="fw-bold">{{ drink.price }}</span>
+                            </td>
+                            <td>
+                                <input type="number" name="drinkQuantities[{{ drink.id }}]" min="0" value="0" class="form-control" data-price="{{ drink.price }}" />
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <h2>Desserts</h2>
+                <table class="table table-bordered table-striped">
+                    <thead class="thead-light">
+                        <tr>
+                            <th scope="col">Dessert</th>
+                            <th scope="col">Price</th>
+                            <th scope="col">Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dessert in desserts %}
+                        <tr>
+                            <td>
+                                <strong>{{ dessert.name }}</strong>
+                            </td>
+                            <td>
+                                <span class="fw-bold">{{ dessert.price }}</span>
+                            </td>
+                            <td>
+                                <input type="number" name="dessertQuantities[{{ dessert.id }}]" min="0" value="0" class="form-control" data-price="{{ dessert.price }}" />
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h2>Order Summary</h2>
+                </div>
+                <div class="card-body">
+                    <ul id="orderSummary" class="list-group">
+                        <!-- Order items will be dynamically added here -->
+                    </ul>
+                    <hr>
+                    <p class="text-right">
+                        <strong>Total Price: $<span id="orderPrice">0.00</span></strong>
+                    </p>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary">Submit Order</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip();  
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const quantityInputs = document.querySelectorAll('input[type="number"]');
+            const orderPriceElement = document.getElementById('orderPrice');
+            const orderSummaryElement = document.getElementById('orderSummary');
+    
+            function updateOrderSummary() {
+                let totalPrice = 0;
+                orderSummaryElement.innerHTML = '';  // Clear the summary list
+    
+                quantityInputs.forEach(input => {
+                    const quantity = parseInt(input.value);
+                    const price = parseFloat(input.getAttribute('data-price'));
+                    const itemName = input.closest('tr').querySelector('strong').textContent;
+    
+                    if (!isNaN(quantity) && !isNaN(price) && quantity > 0) {
+                        // Calculate total for this item
+                        const itemTotalPrice = quantity * price;
+                        totalPrice += itemTotalPrice;
+    
+                        // Add the item to the summary list
+                        const listItem = document.createElement('li');
+                        listItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+                        listItem.textContent = `${itemName} x${quantity}`;
+                        
+                        // Add price to the list item
+                        const priceSpan = document.createElement('span');
+                        priceSpan.classList.add('badge', 'badge-primary', 'badge-pill');
+                        priceSpan.textContent = `$${itemTotalPrice.toFixed(2)}`;
+                        listItem.appendChild(priceSpan);
+                        
+                        orderSummaryElement.appendChild(listItem);
+                    }
+                });
+    
+                // Update the total price in the summary
+                orderPriceElement.textContent = totalPrice.toFixed(2);
+            }
+    
+            // Listen for changes in the quantity inputs
+            quantityInputs.forEach(input => {
+                input.addEventListener('input', updateOrderSummary);
+            });
+    
+            // Initial calculation of the order summary
+            updateOrderSummary();
+        });
+    </script>
 </body>
 </html>
