@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 
 from app.customers.models import Customer
-from .forms import OrderForm, OrderItemFormSet
+from .forms import OrderForm
 from .models import Delivery, Dessert, Drink, Order, OrderItem, Pizza
 
 @login_required(login_url='/login/')
