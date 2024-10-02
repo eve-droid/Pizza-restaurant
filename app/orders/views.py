@@ -45,6 +45,3 @@ def mark_as_delivered(request, order_id):
     if order.status == 'Out for Delivery':
         order.update_status('Delivered')
     return redirect('track_order', order_id=order_id)
-
-def homepage(request):
-    return render(request, 'homepage.html')
