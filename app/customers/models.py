@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from datetime import datetime
+
 
 class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, default=None)
@@ -12,3 +14,6 @@ class Customer(models.Model):
 
     def is_eligible_for_discount(self):
         return self.count_pizza >= 10
+
+    def is_birthday_today(self):
+        return self.birthday == datetime.now().date()

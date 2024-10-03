@@ -2,7 +2,6 @@
 {% load crispy_forms_tags %}
 
 
-
 <!-- Bootstrap CSS -->
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 
@@ -46,10 +45,21 @@
         <!-- Order Form -->
         <form method="POST">
             {% csrf_token %}
+            <input type="hidden" id="additionalDiscountInput" value="{% if additional_discount %}true{% else %}false{% endif %}">
+            <input type="hidden" id="freeItems" value="{% if free_item_eligible %}true{% else %}false{% endif %}">
             {{ order_item_formset.management_form }}
             {{ order_item_formset|crispy }}
             <div class="table-responsive">
-                <h2>Pizzas</h2>
+                {% if free_item_eligible %}
+                <p class="text-right">
+                    <strong>Happy Birthday! For the occasion, we would like to offer you a free pizza and a free drink </strong>
+                </p>
+                {% endif %}
+                {% if additional_discount %}
+                <p class="text-right">
+                    <strong>Congratulations, you bought more than 10 pizzas in our restaurant! To reward such a loyal customer, we would like to offer you a 10% discount on this order </strong>
+                </p>
+                {% endif %}
                 <table class="table table-bordered table-striped">
                     <thead class="thead-light">
                         <tr>
@@ -94,9 +104,7 @@
                             <td>
                                 <strong>{{ drink.name }}</strong>
                             </td>
-                            <td>
-                                <span class="fw-bold">{{ drink.price }}</span>
-                            </td>
+                            <td>{{ drink.price }}</td>
                             <td>
                                 <input type="number" name="drinkQuantities[{{ drink.id }}]" min="0" value="0" class="form-control" data-price="{{ drink.price }}" />
                             </td>
@@ -120,9 +128,7 @@
                             <td>
                                 <strong>{{ dessert.name }}</strong>
                             </td>
-                            <td>
-                                <span class="fw-bold">{{ dessert.price }}</span>
-                            </td>
+                            <td> {{ dessert.price }}</td>
                             <td>
                                 <input type="number" name="dessertQuantities[{{ dessert.id }}]" min="0" value="0" class="form-control" data-price="{{ dessert.price }}" />
                             </td>
@@ -130,6 +136,12 @@
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+
+            <h2>Discount Code</h2>
+            <div class="form-group">
+                <input type="text" name="discountCode" id="discountCode" class="form-control" placeholder="Enter discount code" />
+                <p id="discountMessage" class="text-danger"></p> 
             </div>
 
             <div class="card mt-4">
@@ -141,9 +153,17 @@
                         <!-- Order items will be dynamically added here -->
                     </ul>
                     <hr>
-                    <p class="text-right">
-                        <strong>Total Price: $<span id="orderPrice">0.00</span></strong>
-                    </p>
+                    {% if additional_discount %}
+                        <p class="text-right">
+                            <strong>Total Price with Additional 10% Discount: 
+                                $<span id="finalPriceWithDiscount">0.00</span>
+                            </strong>
+                        </p>
+                    {% else %}
+                        <p class="text-right">
+                            <strong>Total Price: $<span id="orderPrice">0.00</span></strong>
+                        </p>
+                    {% endif %}
                 </div>
             </div>
 
@@ -161,23 +181,53 @@
         $(function () {
             $('[data-toggle="tooltip"]').tooltip();  
         });
-    </script>
+    </script>validate_discount_code
     <script>
+
         document.addEventListener('DOMContentLoaded', function () {
+            const additionalDiscount = document.getElementById('additionalDiscountInput').value === 'true';
+            const freeItems = document.getElementById('freeItems').value === 'true';
             const quantityInputs = document.querySelectorAll('input[type="number"]');
             const orderPriceElement = document.getElementById('orderPrice');
+            const finalPriceWithDiscountElement = document.getElementById('finalPriceWithDiscount');
             const orderSummaryElement = document.getElementById('orderSummary');
+            const discountCodeInput = document.getElementById('discountCode');
+            const discountMessage = document.getElementById('discountMessage');
+            let discountValue = 0;
     
             function updateOrderSummary() {
                 let totalPrice = 0;
                 orderSummaryElement.innerHTML = '';  // Clear the summary list
+                let cheapestPizzaPrice = 0;
+                let cheapestPizzaName = '';
+                let cheapestPizzaIndex =-1;
+                let cheapestDrinkPrice = 0;
+                let cheapestDrinkName = '';
+                let cheapestDrinkIndex =-1;
+                listItems = [];
+                let index = 0;
     
                 quantityInputs.forEach(input => {
                     const quantity = parseInt(input.value);
                     const price = parseFloat(input.getAttribute('data-price'));
                     const itemName = input.closest('tr').querySelector('strong').textContent;
+                    const pizzaNames = ['Margherita', 'Pepperoni', 'Vegetarian', 'Hawaiian', 'Meat Lovers', 'Supreme', 'BBQ Chicken', 'Seafood', 'Deluxe', 'Calzone'];
+                    const drinkNames = ['Water', 'Cola', 'Orange Juice', 'Red Bull', 'Beer'];
+
+                    
+
     
                     if (!isNaN(quantity) && !isNaN(price) && quantity > 0) {
+                        if (freeItems && pizzaNames.includes(itemName) && (cheapestPizzaPrice == 0 || price <= cheapestPizzaPrice)){
+                            cheapestPizzaPrice = price;
+                            cheapestPizzaName = itemName;
+                            cheapestPizzaIndex = index;
+                        } else if (freeItems && drinkNames.includes(itemName) && (cheapestDrinkPrice == 0 || price <= cheapestDrinkPrice)){
+                            console.log(price/quantity);
+                            cheapestDrinkPrice = price;
+                            cheapestDrinkName = itemName;
+                            cheapestDrinkIndex = index;
+                        }
                         // Calculate total for this item
                         const itemTotalPrice = quantity * price;
                         totalPrice += itemTotalPrice;
@@ -187,18 +237,120 @@
                         listItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
                         listItem.textContent = `${itemName} x${quantity}`;
                         
-                        // Add price to the list item
                         const priceSpan = document.createElement('span');
                         priceSpan.classList.add('badge', 'badge-primary', 'badge-pill');
                         priceSpan.textContent = `$${itemTotalPrice.toFixed(2)}`;
                         listItem.appendChild(priceSpan);
+
+                        listItems.push(listItem);
+                        console.log(cheapestPizzaName);
                         
                         orderSummaryElement.appendChild(listItem);
+                        index++;
                     }
+                    
                 });
+                
+
+                if (freeItems){
+                    
+                    if (cheapestPizzaIndex !== -1) {
+                        console.log('still good');
+                        console.log(cheapestPizzaIndex);
+                        const cheapestPizzaItem = listItems[cheapestPizzaIndex];
+                        totalPrice -= cheapestPizzaPrice;  // Subtract the price of the free pizza
+                        console.log(cheapestPizzaItem);
+                        const quantityText = cheapestPizzaItem.textContent.match(/x(\d+)/);
+                        const quantity = quantityText ? parseInt(quantityText[1]) : 1;
+
+                        if(quantity === 1){
+                            //console.log(cheapestPizzaName);
+                            // Modify the list item to show the pizza as free
+                            const freeBadge = document.createElement('span');
+                            console.log('still good');
+                            freeBadge.classList.add('badge', 'badge-success', 'badge-pill');
+                            console.log('still good');
+                            freeBadge.textContent = 'Free';
+                            console.log('still good');
+                            cheapestPizzaItem.querySelector('.badge-primary').remove();  // Remove the old price badge
+                            console.log('still good');
+                            cheapestPizzaItem.appendChild(freeBadge);  // Add the "Free" badge
+                            console.log('still good');
+                            console.log(cheapestPizzaName);
+                        } else{
+                            console.log(cheapestPizzaName);
+                            const remainingQuantity = quantity - 1;
+                            const remainingPrice = cheapestPizzaPrice * remainingQuantity;
+                            cheapestPizzaItem.textContent = `${cheapestPizzaName} x${remainingQuantity}`;
+                            console.log(cheapestPizzaName);
+
+                            const priceSpan = document.createElement('span');
+                            priceSpan.classList.add('badge', 'badge-primary', 'badge-pill');
+                            priceSpan.textContent = `$${remainingPrice.toFixed(2)}`;
+                            cheapestPizzaItem.appendChild(priceSpan);
+
+                            const freelistItem = document.createElement('li');
+                            freelistItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+                            freelistItem.textContent = `${cheapestPizzaName} x1`;
+                            const freeBadge = document.createElement('span');
+                            freeBadge.classList.add('badge', 'badge-success', 'badge-pill');
+                            freeBadge.textContent = 'Free';
+                            freelistItem.appendChild(freeBadge);
+                            orderSummaryElement.appendChild(freelistItem);
+                        }
+                    }
+                    if (cheapestDrinkIndex !== -1) {
+                        console.log(cheapestDrinkIndex);
+                        const cheapestDrinkItem = listItems[cheapestDrinkIndex];
+                        totalPrice -= cheapestDrinkPrice;  // Subtract the price of the free Drink
+                        const quantityText = cheapestDrinkItem.textContent.match(/x(\d+)/);
+                        const quantity = quantityText ? parseInt(quantityText[1]) : 1;
+
+                        if(quantity === 1){
+                            // Modify the list item to show the Drink as free
+                            const freeBadge = document.createElement('span');
+                            freeBadge.classList.add('badge', 'badge-success', 'badge-pill');
+                            freeBadge.textContent = 'Free';
+                            cheapestDrinkItem.querySelector('.badge-primary').remove();  // Remove the old price badge
+                            cheapestDrinkItem.appendChild(freeBadge);  // Add the "Free" badge
+                        } else{
+                            const remainingQuantity = quantity - 1;
+                            const remainingPrice = cheapestDrinkPrice * remainingQuantity;
+                            cheapestDrinkItem.textContent = `${cheapestDrinkName} x${remainingQuantity}`;
+
+                            const priceSpan = document.createElement('span');
+                            priceSpan.classList.add('badge', 'badge-primary', 'badge-pill');
+                            priceSpan.textContent = `$${remainingPrice.toFixed(2)}`;
+                            cheapestDrinkItem.appendChild(priceSpan);
+
+                            const freelistItem = document.createElement('li');
+                            freelistItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
+                            freelistItem.textContent = `${cheapestDrinkName} x1`;
+                            const freeBadge = document.createElement('span');
+                            freeBadge.classList.add('badge', 'badge-success', 'badge-pill');
+                            freeBadge.textContent = 'Free';
+                            freelistItem.appendChild(freeBadge);
+                            orderSummaryElement.appendChild(freelistItem);
+                        
+                        }
+                    }
+                }
+
+
+                if(additionalDiscount){
+                    totalPrice -= totalPrice * 0.1;  // Apply additional discount if any
+                    finalPriceWithDiscountElement.textContent = totalPrice.toFixed(2);
+                }
+
+
+                totalPrice -= totalPrice * discountValue;  // Apply discount if any
+
     
                 // Update the total price in the summary
                 orderPriceElement.textContent = totalPrice.toFixed(2);
+
+                
+
             }
     
             // Listen for changes in the quantity inputs
@@ -208,6 +360,40 @@
     
             // Initial calculation of the order summary
             updateOrderSummary();
+
+            discountCodeInput.addEventListener('input', function () {
+                const code = discountCodeInput.value.trim();
+
+                if (code) {
+                    // Make AJAX call to validate the discount code
+                    fetch(`/validate_discount_code/?code=${code}&has_discount_code=${additionalDiscount}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.valid) {
+                                discountMessage.textContent = `Valid discount: ${data.percentage}% off`;
+                                discountMessage.classList.remove('text-danger');
+                                discountMessage.classList.add('text-success');
+                                discountValue = data.percentage / 100;  // Apply discount
+                            } else {
+                                discountMessage.textContent = data.message;
+                                discountMessage.classList.add('text-danger');
+                                discountMessage.classList.remove('text-success');
+                                discountValue = 0;  // No discount applied
+                            }
+
+                            // Update the order summary after discount change
+                            updateOrderSummary();
+                        })
+                        .catch(error => {
+                            discountMessage.textContent = 'Error validating the discount code.' + error;
+                            discountMessage.classList.add('text-danger');
+                            discountValue = 0;
+                        });
+                } else {
+                    discountMessage.textContent = '';
+                    discountValue = 0;
+                }
+            });
         });
     </script>
 </body>

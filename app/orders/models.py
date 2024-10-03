@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import ROUND_UP, Decimal
 from django.db import models
 
 from app.customers.models import Customer
@@ -19,7 +19,9 @@ class Pizza(models.Model):
             self.price += All_Ingredients.objects.get(name = ingredient).price
 
         self.price += (self.price* Decimal(0.4))
-        self.price = self.price.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        self.price += (self.price* Decimal(0.09))
+        self.price = self.price.quantize(Decimal('1'), rounding=ROUND_UP) - Decimal(0.01)
+        self.price = self.price.quantize(Decimal('0.01'), rounding=ROUND_UP)
         return self.price
     
     def get_ingredients(self):
@@ -62,6 +64,7 @@ class Order(models.Model):
     order_time = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=100, choices=Status_Choices, default='Processing')
     delivery = models.OneToOneField('Delivery', null=True, blank=True, on_delete=models.SET_NULL)
+    has_discount_code = models.BooleanField(default=False)
 
 
     def get_total_price(self):
@@ -79,35 +82,23 @@ class Order(models.Model):
         for drink in drinks:
             self.price += drink.drink.price * drink.quantity
 
-        #offer a free pizza and drind if it's customer's birthday
-        if self.customer.birthday == datetime.now().date():
-            if len(pizzas) != 0:
-                self.price -= min(pizzas)
-            if len(drinks) != 0:
-                self.price -= min(drinks)
-
-        # Apply 10% discount if the customer is eligible
-        if self.customer.is_eligible_for_discount():
-            self.price = self.price * 0.9
-            self.customer.count_pizza %= 10 # Reset the count of pizzas
-
         return self.price
 
-    def apply_discount(self, discount_code):
+    def apply_discount(self, discount_code, discount_error=False):
         if discount_code != '':
             try:
                 discount = Discount.objects.get(discount_code=discount_code)
                 if discount.is_valid() and not self.has_discount_code:
-                    self.price = self.price * (1 - discount.discount/100)
+                    self.price = self.price * Decimal(1 - discount.percentage/100)
                     discount.used = True
                     self.has_discount_code = True
                     discount.save()
                 elif self.has_discount_code:
-                    raise ValueError('A dicount code has already been applied')
+                    discount_error = 'A dicount code has already been applied'
             except ValueError as e:
-                raise ValueError('Invalid discount code')
+                discount_error = 'Invalid discount code'
     
-        return self.price
+        return self.price, discount_error
     
     def estimate_delivery_time(self):
         #Estimate the delivery time to be 30 minutes after the order time.

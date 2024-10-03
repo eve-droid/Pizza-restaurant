@@ -1,10 +1,10 @@
-from datetime import datetime
+from django.utils import timezone
 from django.db import models
 
 #each discount is unique to a customer
 class Discount(models.Model):
     discount_code = models.CharField(max_length=15, unique = True)
-    discount = models.IntegerField() #discount percentage
+    percentage = models.IntegerField() #discount percentage
     used = models.BooleanField(default=False)
     end_date = models.DateTimeField(null=True, blank=True)
 
@@ -12,15 +12,17 @@ class Discount(models.Model):
     def is_valid(self):
 
         try:
-            discount = Discount.objects.get(discount_code=self.discount_code)
-            if discount.used:
-                raise ValueError('The dicount code has already been used')
-            elif discount.end_date <= datetime.now() or self.end_date is not None:
-                raise ValueError('Discount code has expired')
+            if self.used:
+                print('used')
+                return False
+            elif self.end_date and self.end_date <= timezone.now() :
+                print('expired')
+                return False
             else:
                 return True
         
         except Discount.DoesNotExist:
-            raise ValueError('Invalid discount code')
+            print('does not exist')
+            return False
         
         
