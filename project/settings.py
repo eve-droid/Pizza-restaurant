@@ -47,8 +47,10 @@ INSTALLED_APPS = [
     'app.discounts',
     'crispy_forms',
     'crispy_bootstrap4',
+    
 ]
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+STATIC_URL = '/static/'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

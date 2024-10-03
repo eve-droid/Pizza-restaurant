@@ -74,6 +74,8 @@ def create_order(request):
                         order_item.save()
 
             if free_item_eligible:
+                customer.had_BD_gift = True
+                customer.save()
                 if cheapest_pizza:
                     order_item = OrderItem.objects.filter(order=order, pizza=cheapest_pizza).first()
                     if order_item:
@@ -91,8 +93,6 @@ def create_order(request):
                 order.price *= Decimal(0.9)
                 customer.count_pizza %= 10 # Reset the count of pizzas
                 customer.save()
-
-
 
             discount_code = request.POST.get('discountCode', '').strip()
             discount_error = None
@@ -115,7 +115,13 @@ def create_order(request):
                     'cheapest_pizza': cheapest_pizza,
                     'cheapest_drink': cheapest_drink,  
                 })
-
+            
+            #check the dietery of pizzas
+            for pizza in pizzas:
+                pizza.is_vegan = pizza.check_if_vegan()
+                pizza.is_vegetarian = pizza.check_if_vegetarian()
+                pizza.save()
+                print(pizza.is_vegetarian)
             # Now create and save the Delivery instance
             delivery = Delivery(Delivery_order=order)  # Create a delivery instance
             delivery.set_delivery_time()  # Set the delivery time

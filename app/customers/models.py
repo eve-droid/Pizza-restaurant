@@ -11,9 +11,12 @@ class Customer(models.Model):
     phone = models.CharField(max_length=100)
     address = models.CharField(max_length=100)
     count_pizza = models.IntegerField(default = 0)
+    had_BD_gift = models.BooleanField(default=False)
 
     def is_eligible_for_discount(self):
         return self.count_pizza >= 10
 
     def is_birthday_today(self):
+        if self.had_BD_gift:
+            return False
         return self.birthday == datetime.now().date()
