@@ -7,7 +7,8 @@ from django.http import JsonResponse
 from app.customers.models import Customer
 from app.discounts.models import Discount
 from .forms import OrderForm
-from .models import Delivery, Dessert, Drink, Order, OrderItem, Pizza
+from .models import Delivery, Dessert, Drink, Order, OrderItem, Pizza, DeliveryPerson
+from django.http import JsonResponse
 
 @login_required(login_url='/login/')
 def create_order(request):
@@ -35,14 +36,14 @@ def create_order(request):
         if form.is_valid():
 
             customer_instance = get_object_or_404(Customer, user=request.user) 
-            order = form.save(commit=False)  # Create the Order instance but do not save it yet
-            order.customer = customer_instance  # Set the customer
+            order = form.save(commit=False)  #create order instance but do not save it yet
+            order.customer = customer_instance  #set customer
             
-            # Calculate total price before saving the order
+            #calculate total price before saving order
         
-            order.save()  # Now save the order to get its ID
+            order.save()  #now save the order to get its ID
 
-            quantities = request.POST  # Get all POST data
+            quantities = request.POST  #get all POST data
             for key in quantities.keys():
                 if key.startswith('pizzaQuantities['):  
                     pizza_id = key.split('[')[1][:-1]  
@@ -116,9 +117,9 @@ def create_order(request):
                     'cheapest_drink': cheapest_drink,  
                 })
 
-            # Now create and save the Delivery instance
-            delivery = Delivery(Delivery_order=order)  # Create a delivery instance
-            delivery.set_delivery_time()  # Set the delivery time
+            #now create and save delivery instance
+            delivery = Delivery(Delivery_order=order)  #create a delivery instance
+            delivery.set_delivery_time()  #set delivery time
             delivery.save()
             order.save()  
 
@@ -160,15 +161,17 @@ def order_success(request):
     return render(request, 'orders/orderSuccess.html')
 
 def track_order(request, order_id):
-    #View to track the status and estimated delivery time of an order.
     order = get_object_or_404(Order, id=order_id)
-    return render(request, 'orders/track_order.html', {
-        'order': order,
-        'estimated_delivery_time': order.estimate_delivery_time(),
+    if not order.estimated_delivery_time:
+        order.calculate_estimated_delivery_time()
+    
+    return JsonResponse({
+        'status': order.status,
+        'estimated_delivery_time': order.estimated_delivery_time.strftime("%Y-%m-%d %H:%M:%S") if order.estimated_delivery_time else "Not available"
     })
 
 def start_delivery(request, order_id):
-    #Mark the order as 'Out for Delivery' and set the delivery time."""
+    #mark the order as 'Out for Delivery' and set the delivery time
     order = get_object_or_404(Order, id=order_id)
     if order.status == 'Processing':
         delivery = Delivery.objects.create(order=order)
@@ -178,8 +181,35 @@ def start_delivery(request, order_id):
     return redirect('track_order', order_id=order_id)
 
 def mark_as_delivered(request, order_id):
-    #Mark the order as delivered."""
+    #mark the order as delivered
     order = get_object_or_404(Order, id=order_id)
     if order.status == 'Out for Delivery':
         order.update_status('Delivered')
     return redirect('track_order', order_id=order_id)
+
+def assign_delivery_person(order):
+    #find available delivery persons for the order's postal code
+    available_persons = DeliveryPerson.objects.filter(postal_code=order.customer.postal_code, available=True)
+    
+    if available_persons.exists():
+        #assign first delivery guy that's available
+        delivery_person = available_persons.first()
+        delivery_person.assigned_orders += 1
+        delivery_person.save()
+        
+        #update order with delivery info
+        order.delivery_person = delivery_person
+        order.save()
+    else:
+        raise ValueError("No delivery personnel available for this postal code.")
+
+def start_delivery(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+
+    try:
+        assign_delivery_person(order)
+        order.status = 'Out for Delivery'
+        order.save()
+        return JsonResponse({'success': True, 'message': 'Delivery started successfully.'})
+    except ValueError as e:
+        return JsonResponse({'success': False, 'error': str(e)})
