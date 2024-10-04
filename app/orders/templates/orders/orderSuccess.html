@@ -5,7 +5,20 @@
     <title>Order Success</title>
 </head>
 <body>
-    <h1>Your order has been successfully placed.</h1>
-    <p>Thank you for ordering in our pizzaria!</p>
+    <h2>Order Success!</h2>
+<p>Thank you for your order, {{ order.customer_name }}.</p>
+
+<h3>Order Summary</h3>
+<ul>
+    <li>Order Number: {{ order.id }}</li>
+    <li>Items Ordered:
+        <ul>
+            {% for item in order.items.all %}
+            <li>{{ item.name }} - Quantity: {{ item.quantity }}</li>
+            {% endfor %}
+        </ul>
+    </li>
+    <li>Total Price: {{ order.total_price }}</li>
+</ul>
 </body>
 </html>

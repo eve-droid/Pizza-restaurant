@@ -129,7 +129,7 @@ def create_order(request):
             order.save()  
 
 
-            return redirect('order_success') 
+            return redirect('order_success', pk=order.pk)
     else:
         form = OrderForm()
 
@@ -162,8 +162,10 @@ def validate_discount_code(request):
 
     
 
-def order_success(request):
-    return render(request, 'orders/orderSuccess.html')
+def order_success(request, pk):
+    order = get_object_or_404(Order, pk=pk)
+    
+    return render(request, 'orders/orderSuccess.html', {'order': order})
 
 def track_order(request, order_id):
     #View to track the status and estimated delivery time of an order.
