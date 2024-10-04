@@ -1,0 +1,148 @@
+{% load custom_filters %}
+{% load crispy_forms_tags %}
+
+
+<!-- Bootstrap CSS -->
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earning Reports</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Earning Reports</h1>
+
+        <h2>Filtering Options:</h2>
+        <div class = "form-container">
+
+            <label for="monthDropdown">Region:</label>
+            <select id= "monthDropdown" >
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </select>
+
+            <label for="regionDropdown">Region:</label>
+            <select id= "regionDropdown" >
+                <option value="All">All</option>
+                {% for item in cityList %}
+                    <option value="{{ item }}">{{ item }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="genderDropdown">Gender:</label>
+            <select id= "genderDropdown">
+                <option value="All">All</option>
+                <option value="Male">Male</option>
+                <option value= "Female">Female</option>
+                <option value= "Other">Other</option>
+            </select>
+
+            <label for="ageInput">Age:   </label>
+            <span>From</span>
+            <input type="number" id="ageFrom" min="18" value="18">
+            <span>To</span>
+            <input type = "number" id="ageTo" min ="18" value="100">
+        </div>
+
+        <div class="text-center">
+            <button id="Generate" type="button" class="btn btn-primary">Generate the report</button>
+        </div>
+
+        <table class="table table-bordered table-striped">
+            <thead class="thead-light">
+                <h2>Reports</h2>
+                <tr>
+                    <th scope="col">Region</th>
+                    <th scope="col">Gender</th>
+                    <th scope="col">Age</th>
+                    <th scope="col">Total Earnings</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+            
+        </table>
+
+
+        <!-- jQuery -->
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <!-- Bootstrap JS -->
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+        
+        <script>
+            $(function () {
+                $('[data-toggle="tooltip"]').tooltip();
+                
+            });
+        </script>
+
+        <script>
+            document.getElementById("Generate").addEventListener("click", function() {
+                console.log("Generate button clicked");
+                const month = document.getElementById("monthDropdown").value;
+                const region = document.getElementById("regionDropdown").value;
+                const gender = document.getElementById("genderDropdown").value;
+                const ageFrom = document.getElementById("ageFrom").value;
+                const ageTo = document.getElementById("ageTo").value;
+
+                console.log("Month:", month);
+                console.log("Regions:", region);
+                console.log("Gender:", gender);
+                console.log("Age From:", ageFrom);
+                console.log("Age To:", ageTo);
+
+                console.log("still ok");
+                fetch('', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}' 
+                    },
+                    body: JSON.stringify({
+                        month: month,
+                        region: region,
+                        gender: gender,
+                        ageFrom: ageFrom,
+                        ageTo: ageTo
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('ok');
+                    const report = data.earningReport;
+
+                    console.log(report.region);
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${report.region}</td>
+                        <td>${report.gender}</td>
+                        <td>${report.ageMin} to ${report.ageMax}</td>
+                        <td>${report.earnings}</td>
+                    `;
+                    console.log(row);
+                    const tableBody = document.querySelector('table tbody');
+                    tableBody.appendChild(row);
+
+                })
+                .catch(error => console.error('Error:', error));
+                conso
+            });
+        </script>
+
+    </div>
+</body>
+</html>

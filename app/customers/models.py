@@ -9,7 +9,8 @@ class Customer(models.Model):
     gender = models.CharField(max_length=10, choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')])
     birthday = models.DateField()
     phone = models.CharField(max_length=100)
-    address = models.CharField(max_length=100)
+    address_number_street = models.CharField(max_length=100)
+    address_city = models.CharField(max_length=100, default = '')
     count_pizza = models.IntegerField(default = 0)
     had_BD_gift = models.BooleanField(default=False)
 

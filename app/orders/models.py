@@ -127,17 +127,13 @@ class Order(models.Model):
         self.status = new_status
         self.save()
 
-
-
     def cancel_order(self):
-        if self.status == 'Delivered':
-            raise ValueError('Cannot cancel delivered order')
-        elif self.status == 'Cancelled':
-            raise ValueError('Order is already cancelled')
-        elif self.order_time + timedelta(minutes=5) < datetime.now():
-            raise ValueError('Cannot cancel order after 5 minutes')
-        else:
-            self.delete()
+        for item in self.items.all():
+            if item.pizza:
+                self.customer.count_pizza -= item.quantity
+        self.customer.save()
+        self.status = 'Cancelled'
+        return self
     
 
 class OrderItem(models.Model):

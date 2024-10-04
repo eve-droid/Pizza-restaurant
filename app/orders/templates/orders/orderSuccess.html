@@ -3,10 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>Order Success</title>
+    <style>
+        #cancel {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: white;
+            color: red;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <h2>Order Success!</h2>
-<p>Thank you for your order, {{ order.customer_name }}.</p>
+<p>Thank you for your order, {{ order.customer.name }}.</p>
 
 <h3>Order Summary</h3>
 <ul>
@@ -26,5 +35,54 @@
     </li>
     <li>Total Price: {{ order.get_total_price }}</li>
 </ul>
+
+    <div class="text-center">
+        <button type="button" id="cancel" class="btn btn-primary">Cancel order</button>
+    </div>
+
+    <script>
+        const orderTime = new Date("{{ order_time|date:'c' }}");  
+        const currentTime = new Date();
+
+        const orderTimePlusFive = new Date(orderTime);
+        orderTimePlusFive.setMinutes(orderTime.getMinutes() + 5);
+
+        if (currentTime > orderTimePlusFive) {
+            const cancelOrderButton = document.getElementById("cancel");
+            cancelOrderButton.style.display = "none";
+        }
+    </script>
+
+    <script>
+
+        document.getElementById("cancel").addEventListener("click", function() {
+
+            if(!confirm("Are you sure you want to cancel the order?")) {
+                return;
+            }   
+
+
+            fetch("{% url 'cancel_order' order.id %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/json"
+                }
+
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert("Order cancelled successfully. You will be redirected to the home page.");
+                    window.location.href = "{% url 'login' %}";
+                } else {
+                    console.log(response);
+                    alert("An error occurred. Please try again.");
+                }
+            });
+        });
+    </script>
+
+ 
 </body>
 </html>
+
