@@ -8,6 +8,8 @@ from app.discounts.models import Discount
 class Pizza(models.Model):
     name = models.CharField(max_length=100)
     ingredients = models.CharField(max_length=200, default='')
+    is_vegetarian = models.BooleanField(default=False)
+    is_vegan = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -23,6 +25,22 @@ class Pizza(models.Model):
         self.price = self.price.quantize(Decimal('1'), rounding=ROUND_UP) - Decimal(0.01)
         self.price = self.price.quantize(Decimal('0.01'), rounding=ROUND_UP)
         return self.price
+    
+    def check_if_vegetarian(self):
+        # Check if the pizza is vegetarian
+        vegetarian_ingredients = ['mozzarella', 'tomato sauce', 'basil','zucchini', 'eggplant', 'peppers', 'pineaplle', 'onions', 'mushrooms', 'olives', 'ricotta', 'parmesan']
+        for ingredient in self.get_ingredients():
+            if ingredient not in vegetarian_ingredients:
+                return False
+        return True
+    
+    def check_if_vegan(self):
+        # Check if the pizza is vegan
+        vegan_ingredients = ['tomato sauce', 'basil','zucchini', 'eggplant', 'peppers', 'pineaplle', 'onions', 'mushrooms', 'olives']
+        for ingredient in self.get_ingredients():
+            if ingredient not in vegan_ingredients:
+                return False
+        return True
     
     def get_ingredients(self):
         return self.ingredients.split(', ')

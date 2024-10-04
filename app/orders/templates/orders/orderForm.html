@@ -1,5 +1,6 @@
 {% load custom_filters %}
 {% load crispy_forms_tags %}
+{% load static %}
 
 
 <!-- Bootstrap CSS -->
@@ -11,6 +12,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Order</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
 </head>
 <body>
     <div class="container">
@@ -77,6 +79,12 @@
                             </td>
                             <td>
                                 <strong>{{ pizza.ingredients }}</strong>
+                                {% if pizza.is_vegetarian %}
+                                    <span class="ingredient-info" data-tooltip="Vegetarian">&#9432;</span>
+                                {% elif pizza.is_vegan %}
+                                    <span class="ingredient-info" data-tooltip="Vegan">&#9432;</span>
+                                {% endif %}
+                                <span class="ingredient-info" data-toggle="tooltip" title="{{ ingredient_info }}"></span>
                             </td>
                             <td>
                                 <span class="fw-bold">{{ pizza.calculate_price }}</span>
@@ -173,13 +181,19 @@
         </form>
     </div>
 
+
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    
     <script>
         $(function () {
-            $('[data-toggle="tooltip"]').tooltip();  
+            $('[data-toggle="tooltip"]').tooltip({
+                placement: 'top',  // or 'right', 'bottom', 'left'
+                offset: '0, 10'
+            });
+              
         });
     </script>validate_discount_code
     <script>
@@ -213,9 +227,6 @@
                     const itemName = input.closest('tr').querySelector('strong').textContent;
                     const pizzaNames = ['Margherita', 'Pepperoni', 'Vegetarian', 'Hawaiian', 'Meat Lovers', 'Supreme', 'BBQ Chicken', 'Seafood', 'Deluxe', 'Calzone'];
                     const drinkNames = ['Water', 'Cola', 'Orange Juice', 'Red Bull', 'Beer'];
-
-                    
-
     
                     if (!isNaN(quantity) && !isNaN(price) && quantity > 0) {
                         if (freeItems && pizzaNames.includes(itemName) && (cheapestPizzaPrice == 0 || price <= cheapestPizzaPrice)){
@@ -395,6 +406,51 @@
                 }
             });
         });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.querySelector('form');
+            const quantityInputs = document.querySelectorAll('input[name^="pizzaQuantities"]');
+
+            form.addEventListener('submit', function (event) {
+                let pizzaSelected = false;
+
+                // Check if at least one pizza has been selected
+                quantityInputs.forEach(input => {
+                    const quantity = parseInt(input.value);
+                    if (quantity > 0) {
+                        pizzaSelected = true;
+                    }
+                });
+
+                // If no pizza is selected, prevent form submission and show an alert
+                if (!pizzaSelected) {
+                    event.preventDefault();
+                    alert('Please select at least one pizza to place an order.');
+                }
+            });
+
+            document.addEventListener('DOMContentLoaded', function () {
+                const vegetarianIngredients = ['mozzarella', 'tomato sauce', 'basil','zucchini', 'eggplant', 'peppers', 'pineaplle', 'onions', 'mushrooms', 'olives', 'ricotta', 'parmesan'];
+                const veganIngredients = ['tomato sauce', 'basil','zucchini', 'eggplant', 'peppers', 'pineaplle', 'onions', 'mushrooms', 'olives'];
+
+                // Select all ingredient info icons
+                const infoIcons = document.querySelectorAll('.ingredient-info');
+
+                infoIcons.forEach(icon => {
+                    const ingredients = icon.getAttribute('data-ingredients').toLowerCase();
+                    let isVegetarian = vegetarianIngredients.every(ingredient => ingredients.includes(ingredient));
+                    let isVegan = veganIngredients.every(ingredient => ingredients.includes(ingredient));
+
+                    if (isVegan) {
+                        icon.setAttribute('data-tooltip', 'Vegan');
+                    } else if (isVegetarian) {
+                        icon.setAttribute('data-tooltip', 'Vegetarian');
+                    } else {
+                        icon.style.display = 'none'; // Hide the icon if it's neither vegetarian nor vegan
+                    }
+                });
+            });
+    });
     </script>
 </body>
 </html>
