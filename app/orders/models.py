@@ -15,8 +15,8 @@ class Pizza(models.Model):
         return self.name
     
     def calculate_price(self):
-        # Calculate the price of the pizza based on the ingredients
-        self.price = Decimal(0.2) #price of the flour for the pizza base
+        #calculate price of a pizza based on the ingredients
+        self.price = Decimal(0.2) #price of flour for the pizza base
         for ingredient in self.get_ingredients():
             self.price += All_Ingredients.objects.get(name = ingredient).price
 
@@ -43,7 +43,6 @@ class Pizza(models.Model):
         return True
     
     def get_ingredients(self):
-        # Get the ingredients of the pizza
         return self.ingredients.split(', ')
 
     
@@ -82,11 +81,12 @@ class Order(models.Model):
     order_time = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=100, choices=Status_Choices, default='Processing')
     delivery = models.OneToOneField('Delivery', null=True, blank=True, on_delete=models.SET_NULL)
+    estimated_delivery_time = models.DateTimeField(null=True, blank=True)
     has_discount_code = models.BooleanField(default=False)
 
 
     def get_total_price(self):
-        # Calculate the total price of the order
+        #calculate total price of the order
         self.price = 0
 
         pizzas = [item for item in self.items.filter(pizza__isnull=False)]
@@ -119,11 +119,11 @@ class Order(models.Model):
         return self.price, discount_error
     
     def estimate_delivery_time(self):
-        #Estimate the delivery time to be 30 minutes after the order time.
+        #estimate the delivery time to be 30 minutes after the order time.
         return self.order_time + timedelta(minutes=30)
 
     def update_status(self, new_status):
-        #Update the status of the order.
+        #update the status of the order.
         self.status = new_status
         self.save()
 
@@ -145,7 +145,7 @@ class OrderItem(models.Model):
     pizza = models.ForeignKey('Pizza',null = True, blank = True, on_delete=models.CASCADE)
     drink = models.ForeignKey('Drink',null = True, blank = True, on_delete=models.CASCADE)
     dessert = models.ForeignKey('Dessert',null = True, blank = True, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)  # Quantity of each pizza
+    quantity = models.PositiveIntegerField(default=1)  # pizza quantity
 
     def __str__(self):
         return f"{self.quantity} x {self.pizza.name} for Order #{self.order.id}"
@@ -155,6 +155,28 @@ class Delivery(models.Model):
     delivery_time = models.DateTimeField(null=True, blank=True)
 
     def set_delivery_time(self):
-        #Set the delivery time when the delivery starts.
+        #time for when the delivery starts
         if not self.delivery_time:
             self.delivery_time = datetime.now() + timedelta(minutes=30)
+
+class DeliveryPerson(models.Model):
+    name = models.CharField(max_length=100)
+    postal_code = models.CharField(max_length=20) #postal code area they are assigned to
+    available = models.BooleanField(default=True) #true if they are available for delivery
+    assigned_orders = models.IntegerField(default=0) #number of orders they are handling
+    
+    def __str__(self):
+        return f"{self.name} - {self.postal_code}"
+    
+    def is_available(self):
+        return self.available and self.assigned_orders < 3
+
+def calculate_estimated_delivery_time(self):
+        if self.delivery_person:
+            #assuming delivery takes 30 mins
+            minutes_per_order = 30
+            #delivery delay if the person is already handling orders
+            additional_minutes = self.delivery_person.assigned_orders * minutes_per_order
+            estimated_time = datetime.now() + timedelta(minutes=additional_minutes)
+            self.estimated_delivery_time = estimated_time
+            self.save()
