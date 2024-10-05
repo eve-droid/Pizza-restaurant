@@ -62,5 +62,30 @@ def generate_earning_report(request):
     
     return render(request, 'management/earningReports.html', {'cityList': cityList})
         
+def monitoring(request):
 
-        
+    if request.method == 'POST':
+        orders = Order.objects.filter(status = 'Processing')
+
+        ordersList = []
+        for order in orders:
+            orderItems = order.items.all()
+
+            itemsList = []
+            for item in orderItems:
+                itemsList.append({
+                    'name': item.pizza.name if item.pizza else item.dessert.name if item.dessert else item.drink.name,
+                    'quantity': item.quantity
+                })
+
+            print(order.id)
+            ordersList.append({
+                'id': order.id,
+                'customer_name': order.customer.name,
+                'items': itemsList
+            })
+
+
+        return JsonResponse(ordersList, safe=False)     
+      
+    return render(request, 'management/monitoring.html')
