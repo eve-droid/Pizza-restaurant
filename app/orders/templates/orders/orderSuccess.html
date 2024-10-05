@@ -41,13 +41,14 @@
     <p>Current Status: <span id="order-status">{{ order.get_status_display }}</span></p>
 
     <h3>Estimated Delivery Time</h3>
-    <p>Estimated Delivery Time: <span id="estimated-delivery-time">{{ estimated_delivery_time }}</span></p>
+    <p>Estimated Delivery Time: <span id="estimated-delivery-time"></span></p> <!-- Empty span for JavaScript to fill -->
 
     <!-- Cancel Order Button -->
     <div class="text-center">
         <button type="button" id="cancel" class="btn btn-primary">Cancel order</button>
     </div>
 
+    <!-- Script for status update and cancel button logic -->
     <script>
         const orderTime = new Date("{{ order_time|date:'c' }}");
         const currentTime = new Date();
@@ -108,7 +109,22 @@
         setTimeout(() => {
             document.getElementById("order-status").textContent = "Delivered";
         }, deliveredTime);
-    
+    </script>
+
+    <!-- Script for displaying the estimated delivery time -->
+    <script>
+        const estimatedDeliveryTime = new Date(orderTime.getTime() + 30 * 60 * 1000); // 30 minutes after order time
+
+        // Function to format the time (HH:MM:SS)
+        function formatTime(date) {
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            return `${hours}:${minutes}:${seconds}`;
+        }
+
+        // Display the estimated delivery time in the appropriate element
+        document.getElementById("estimated-delivery-time").textContent = formatTime(estimatedDeliveryTime);
     </script>
     
     <!-- Script for canceling the order with a confirmation prompt -->
