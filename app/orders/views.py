@@ -174,6 +174,7 @@ def cancel_order(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     try:
         order = order.cancel_order()
+        order.save()
         print(order.status)
         return JsonResponse({'success': True, 'message': 'Order cancelled successfully.'})
     except ValueError as e:
