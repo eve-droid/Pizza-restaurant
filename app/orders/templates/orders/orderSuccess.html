@@ -35,6 +35,12 @@
     </li>
     <li>Total Price: {{ order.get_total_price }}</li>
 </ul>
+<h3>Order Status</h3>
+<p>Current Status: <span id="order-status">{{ order.get_status_display }}</span></p>
+
+<h3>Estimated Delivery Time</h3>
+<p>Estimated Delivery Time: <span id="estimated-delivery-time">{{ estimated_delivery_time }}</span></p>
+
 
     <div class="text-center">
         <button type="button" id="cancel" class="btn btn-primary">Cancel order</button>

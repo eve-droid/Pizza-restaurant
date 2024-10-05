@@ -2,6 +2,7 @@ from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from datetime import timedelta
 
 
 from app.customers.models import Customer
@@ -168,7 +169,20 @@ def validate_discount_code(request):
 def order_success(request, pk):
     order = get_object_or_404(Order, pk=pk)
     
-    return render(request, 'orders/orderSuccess.html', {'order': order, 'order_time': order.order_time})
+    # Check if there's a delivery person assigned and calculate estimated delivery time
+    delivery_person = order.delivery_person
+    if delivery_person:
+        # Assuming there's an estimated time in minutes for delivery
+        estimated_time = order.order_time + timedelta(minutes=delivery_person.estimated_delivery_time)
+    else:
+        estimated_time = None  # If no delivery person is assigned yet
+    
+    return render(request, 'orders/orderSuccess.html', {
+        'order': order,
+        'order_time': order.order_time,
+        'estimated_delivery_time': estimated_time.strftime('%H:%M:%S') if estimated_time else 'Not available'
+    })
+
 
 def cancel_order(request, order_id):
     order = get_object_or_404(Order, id=order_id)

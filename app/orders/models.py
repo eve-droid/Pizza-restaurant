@@ -81,6 +81,7 @@ class Order(models.Model):
     order_time = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=100, choices=Status_Choices, default='Processing')
     delivery = models.OneToOneField('Delivery', null=True, blank=True, on_delete=models.SET_NULL)
+    delivery_person = models.ForeignKey('DeliveryPerson', on_delete=models.SET_NULL, null=True, blank=True)
     estimated_delivery_time = models.DateTimeField(null=True, blank=True)
     has_discount_code = models.BooleanField(default=False)
 
@@ -166,13 +167,23 @@ class DeliveryPerson(models.Model):
     
     def is_available(self):
         return self.available and self.assigned_orders < 3
+    
+    def assign_delivery_person(self):
+        available_person = DeliveryPerson.objects.filter(available=True).first()
+        if available_person:
+            self.delivery_person = available_person
+            available_person.assigned_orders += 1
+            available_person.save()
+            self.save()
+
 
 def calculate_estimated_delivery_time(self):
-        if self.delivery_person:
-            #assuming delivery takes 30 mins
-            minutes_per_order = 30
-            #delivery delay if the person is already handling orders
-            additional_minutes = self.delivery_person.assigned_orders * minutes_per_order
-            estimated_time = datetime.now() + timedelta(minutes=additional_minutes)
-            self.estimated_delivery_time = estimated_time
-            self.save()
+    if self.delivery_person:
+        minutes_per_order = 30
+        additional_minutes = self.delivery_person.assigned_orders * minutes_per_order
+        estimated_time = datetime.now() + timedelta(minutes=additional_minutes)
+        self.estimated_delivery_time = estimated_time
+        self.save()
+        print(f"Estimated Delivery Time: {estimated_time}")  # Debugging log
+    else:
+        print("No delivery person assigned!")  # Debugging log
