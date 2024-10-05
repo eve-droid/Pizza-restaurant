@@ -7,7 +7,6 @@ from datetime import date, datetime
 
 from app import customers
 from app.customers.models import Customer
-from app.management.models import earningReports
 from app.orders.models import Order
 
 def generate_earning_report(request):
