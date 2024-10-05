@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 from decimal import ROUND_UP, Decimal
 from django.db import models
+from django.utils import timezone
+
 
 from app.customers.models import Customer
 from app.discounts.models import Discount
@@ -72,6 +74,7 @@ class Drink(models.Model):
 class Order(models.Model):
     Status_Choices = [
         ('Processing', 'Processing'),
+        ('Making', 'Making'),  # Added new status for Making
         ('Out for Delivery', 'Out for Delivery'),
         ('Delivered', 'Delivered'),
         ('Cancelled', 'Cancelled')
@@ -85,9 +88,8 @@ class Order(models.Model):
     estimated_delivery_time = models.DateTimeField(null=True, blank=True)
     has_discount_code = models.BooleanField(default=False)
 
-
     def get_total_price(self):
-        #calculate total price of the order
+        # calculate total price of the order
         self.price = 0
 
         pizzas = [item for item in self.items.filter(pizza__isnull=False)]
@@ -108,23 +110,46 @@ class Order(models.Model):
             try:
                 discount = Discount.objects.get(discount_code=discount_code)
                 if discount.is_valid() and not self.has_discount_code:
-                    self.price = self.price * Decimal(1 - discount.percentage/100)
+                    self.price = self.price * Decimal(1 - discount.percentage / 100)
                     discount.used = True
                     self.has_discount_code = True
                     discount.save()
                 elif self.has_discount_code:
-                    discount_error = 'A dicount code has already been applied'
+                    discount_error = 'A discount code has already been applied'
             except ValueError as e:
                 discount_error = 'Invalid discount code'
-    
+
         return self.price, discount_error
-    
+
     def estimate_delivery_time(self):
-        #estimate the delivery time to be 30 minutes after the order time.
+        # estimate the delivery time to be 30 minutes after the order time.
         return self.order_time + timedelta(minutes=30)
 
+    def auto_update_status(self):
+        """
+        Automatically update the status of the order based on elapsed time and delivery progress.
+        """
+        now = timezone.now()
+        time_since_order = now - self.order_time
+
+        # Step 1: After 5 minutes, change from "Processing" to "Making"
+        if self.status == 'Processing' and time_since_order > timedelta(minutes=5):
+            self.status = 'Making'
+            self.save()
+
+        # Step 2: After 15 minutes (total 20 mins), change from "Making" to "Out for Delivery"
+        if self.status == 'Making' and time_since_order > timedelta(minutes=20):
+            self.status = 'Out for Delivery'
+            self.estimated_delivery_time = now + timedelta(minutes=30)  # Update estimated delivery time
+            self.save()
+
+        # Step 3: Change to "Delivered" once the estimated delivery time is reached
+        if self.status == 'Out for Delivery' and now >= self.estimated_delivery_time:
+            self.status = 'Delivered'
+            self.save()
+
     def update_status(self, new_status):
-        #update the status of the order.
+        # update the status of the order.
         self.status = new_status
         self.save()
 
@@ -135,6 +160,7 @@ class Order(models.Model):
         self.customer.save()
         self.status = 'Cancelled'
         return self
+
     
 
 class OrderItem(models.Model):

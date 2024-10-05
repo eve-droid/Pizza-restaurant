@@ -164,19 +164,21 @@ def validate_discount_code(request):
     except Discount.DoesNotExist:
         return JsonResponse({'valid': False, 'message': 'This discount code does not exist.'})
 
-    
-
 def order_success(request, pk):
     order = get_object_or_404(Order, pk=pk)
+    
+    # Automatically update the status before rendering the page
+    order.auto_update_status()
     
     # Check if there's a delivery person assigned and calculate estimated delivery time
     delivery_person = order.delivery_person
     if delivery_person:
-        # Assuming there's an estimated time in minutes for delivery
-        estimated_time = order.order_time + timedelta(minutes=delivery_person.estimated_delivery_time)
+        # Assuming you want to calculate the estimated time based on the delivery person's workload
+        order.calculate_estimated_delivery_time()  # Update the estimated delivery time
+        estimated_time = order.estimated_delivery_time
     else:
         estimated_time = None  # If no delivery person is assigned yet
-    
+
     return render(request, 'orders/orderSuccess.html', {
         'order': order,
         'order_time': order.order_time,

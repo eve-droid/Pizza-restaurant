@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Success</title>
     <style>
         #cancel {
@@ -15,72 +16,116 @@
 </head>
 <body>
     <h2>Order Success!</h2>
-<p>Thank you for your order, {{ order.customer.name }}.</p>
+    <p>Thank you for your order, {{ order.customer.name }}.</p>
 
-<h3>Order Summary</h3>
-<ul>
-    <li>Order Number: {{ order.id }}</li>
-    <li>Items Ordered:
-        <ul>
-            {% for item in order.items.all %}
-                {% if item.pizza%}
-                <li>{{ item.pizza.name }} - Quantity: {{ item.quantity }}</li>
-                {% elif item.drink %}
-                <li>{{ item.drink.name }} - Quantity: {{ item.quantity }}</li>
-                {% elif item.dessert%}
-                <li>{{ item.dessert.name }} - Quantity: {{ item.quantity }}</li>
-                {% endif %}
-            {% endfor %}
-        </ul>
-    </li>
-    <li>Total Price: {{ order.get_total_price }}</li>
-</ul>
-<h3>Order Status</h3>
-<p>Current Status: <span id="order-status">{{ order.get_status_display }}</span></p>
+    <h3>Order Summary</h3>
+    <ul>
+        <li>Order Number: {{ order.id }}</li>
+        <li>Items Ordered:
+            <ul>
+                {% for item in order.items.all %}
+                    {% if item.pizza %}
+                        <li>{{ item.pizza.name }} - Quantity: {{ item.quantity }}</li>
+                    {% elif item.drink %}
+                        <li>{{ item.drink.name }} - Quantity: {{ item.quantity }}</li>
+                    {% elif item.dessert %}
+                        <li>{{ item.dessert.name }} - Quantity: {{ item.quantity }}</li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </li>
+        <li>Total Price: {{ order.get_total_price }}</li>
+    </ul>
 
-<h3>Estimated Delivery Time</h3>
-<p>Estimated Delivery Time: <span id="estimated-delivery-time">{{ estimated_delivery_time }}</span></p>
+    <h3>Order Status</h3>
+    <p>Current Status: <span id="order-status">{{ order.get_status_display }}</span></p>
 
+    <h3>Estimated Delivery Time</h3>
+    <p>Estimated Delivery Time: <span id="estimated-delivery-time">{{ estimated_delivery_time }}</span></p>
 
+    <!-- Cancel Order Button -->
     <div class="text-center">
         <button type="button" id="cancel" class="btn btn-primary">Cancel order</button>
     </div>
 
     <script>
-        const orderTime = new Date("{{ order_time|date:'c' }}");  
+        const orderTime = new Date("{{ order_time|date:'c' }}");
         const currentTime = new Date();
-
+    
+        // Time intervals for each status change (in milliseconds)
+        const makingTime = 5 * 60 * 1000; // 5 minutes
+        const outForDeliveryTime = 20 * 60 * 1000; // 5 + 15 minutes
+        const deliveredTime = 30 * 60 * 1000; // Total 30 minutes
+    
+        // Calculate the times for each status change
+        const makingEndTime = new Date(orderTime.getTime() + makingTime);
+        const outForDeliveryEndTime = new Date(orderTime.getTime() + outForDeliveryTime);
+        const deliveredEndTime = new Date(orderTime.getTime() + deliveredTime);
+    
+        // Calculate the order time plus 5 minutes for hiding cancel button
         const orderTimePlusFive = new Date(orderTime);
         orderTimePlusFive.setMinutes(orderTime.getMinutes() + 5);
-
+    
+        // Hide the cancel button if more than 5 minutes have passed
         if (currentTime > orderTimePlusFive) {
             const cancelOrderButton = document.getElementById("cancel");
             cancelOrderButton.style.display = "none";
-        }else {
-            const timeRemaining = orderTimePlusFive - currentTime; 
+        } else {
+            const timeRemaining = orderTimePlusFive - currentTime;
             setTimeout(() => {
                 const removeOrderButton = document.getElementById("cancel");
-                removeOrderButton.style.display= "none"; 
+                removeOrderButton.style.display = "none";
             }, timeRemaining);
         }
+    
+        // Function to update the order status
+        function updateOrderStatus() {
+            const orderStatusElement = document.getElementById("order-status");
+    
+            if (currentTime >= deliveredEndTime) {
+                orderStatusElement.textContent = "Delivered";
+            } else if (currentTime >= outForDeliveryEndTime) {
+                orderStatusElement.textContent = "Out for Delivery";
+            } else if (currentTime >= makingEndTime) {
+                orderStatusElement.textContent = "Making";
+            } else {
+                orderStatusElement.textContent = "Processing";
+            }
+        }
+    
+        // Initially set the correct order status
+        updateOrderStatus();
+    
+        // Update the status at each specific time point
+        setTimeout(() => {
+            document.getElementById("order-status").textContent = "Making";
+        }, makingTime);
+    
+        setTimeout(() => {
+            document.getElementById("order-status").textContent = "Out for Delivery";
+        }, outForDeliveryTime);
+    
+        setTimeout(() => {
+            document.getElementById("order-status").textContent = "Delivered";
+        }, deliveredTime);
+    
     </script>
-
+    
+    <!-- Script for canceling the order with a confirmation prompt -->
     <script>
-
         document.getElementById("cancel").addEventListener("click", function() {
-
-            if(!confirm("Are you sure you want to cancel the order?")) {
+            // Confirmation prompt
+            if (!confirm("Are you sure you want to cancel the order?")) {
                 return;
-            }   
+            }
 
-
+            // Send cancellation request
             fetch("{% url 'cancel_order' order.id %}", {
                 method: "POST",
                 headers: {
                     "X-CSRFToken": "{{ csrf_token }}",
                     "Content-Type": "application/json"
                 }
-
             })
             .then(response => {
                 if (response.ok) {
@@ -94,7 +139,5 @@
         });
     </script>
 
- 
 </body>
 </html>
-
