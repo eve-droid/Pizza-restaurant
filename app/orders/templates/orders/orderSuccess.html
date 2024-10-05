@@ -56,6 +56,12 @@
         if (currentTime > orderTimePlusFive) {
             const cancelOrderButton = document.getElementById("cancel");
             cancelOrderButton.style.display = "none";
+        }else {
+            const timeRemaining = orderTimePlusFive - currentTime; 
+            setTimeout(() => {
+                const removeOrderButton = document.getElementById("cancel");
+                removeOrderButton.style.display= "none"; 
+            }, timeRemaining);
         }
     </script>
 
