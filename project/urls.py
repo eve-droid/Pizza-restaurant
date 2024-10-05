@@ -28,6 +28,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('app.customers.urls')),
     path('', include('app.orders.urls')),  
+    path('', include('app.management.urls')),
     path('login/', authentication_views.LoginView.as_view(), name='login'),
     path('logout/', authentication_views.LogoutView.as_view(), name='logout'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

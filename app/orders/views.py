@@ -25,10 +25,12 @@ def create_order(request):
 
         if customer.is_birthday_today():
             free_item_eligible = True
+        else:
+            customer.had_BD_gift = False
+            customer.save()
 
         if customer.is_eligible_for_discount():
             additional_discount = True
-            print('Eligible for discount')
 
     if request.method == 'POST':
         form = OrderForm(request.POST)
@@ -130,7 +132,7 @@ def create_order(request):
             order.save()  
 
 
-            return redirect('order_success') 
+            return redirect('order_success', pk=order.pk)
     else:
         form = OrderForm()
 
@@ -163,8 +165,19 @@ def validate_discount_code(request):
 
     
 
-def order_success(request):
-    return render(request, 'orders/orderSuccess.html')
+def order_success(request, pk):
+    order = get_object_or_404(Order, pk=pk)
+    
+    return render(request, 'orders/orderSuccess.html', {'order': order, 'order_time': order.order_time})
+
+def cancel_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    try:
+        order = order.cancel_order()
+        print(order.status)
+        return JsonResponse({'success': True, 'message': 'Order cancelled successfully.'})
+    except ValueError as e:
+        return JsonResponse({'success': False, 'error': str(e)})
 
 def track_order(request, order_id):
     order = get_object_or_404(Order, id=order_id)
