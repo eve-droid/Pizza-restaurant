@@ -74,7 +74,7 @@ class Drink(models.Model):
 class Order(models.Model):
     Status_Choices = [
         ('Processing', 'Processing'),
-        ('Making', 'Making'),  # Added new status for Making
+        ('Your order is being prepared', 'Your order is being prepared'),  # Added new status for Making
         ('Out for Delivery', 'Out for Delivery'),
         ('Delivered', 'Delivered'),
         ('Cancelled', 'Cancelled')
@@ -134,11 +134,11 @@ class Order(models.Model):
 
         # Step 1: After 5 minutes, change from "Processing" to "Making"
         if self.status == 'Processing' and time_since_order > timedelta(minutes=5):
-            self.status = 'Making'
+            self.status = 'Your order is being prepared'
             self.save()
 
         # Step 2: After 15 minutes (total 20 mins), change from "Making" to "Out for Delivery"
-        if self.status == 'Making' and time_since_order > timedelta(minutes=20):
+        if self.status == 'Your order is being prepared' and time_since_order > timedelta(minutes=20):
             self.status = 'Out for Delivery'
             self.estimated_delivery_time = now + timedelta(minutes=30)  # Update estimated delivery time
             self.save()

@@ -88,7 +88,7 @@
             } else if (currentTime >= outForDeliveryEndTime) {
                 orderStatusElement.textContent = "Out for Delivery";
             } else if (currentTime >= makingEndTime) {
-                orderStatusElement.textContent = "Making";
+                orderStatusElement.textContent = "Your order is being prepared";
             } else {
                 orderStatusElement.textContent = "Processing";
             }
@@ -99,7 +99,7 @@
     
         // Update the status at each specific time point
         setTimeout(() => {
-            document.getElementById("order-status").textContent = "Making";
+            document.getElementById("order-status").textContent = "Your order is being prepared";
         }, makingTime);
     
         setTimeout(() => {

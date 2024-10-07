@@ -65,7 +65,7 @@ def generate_earning_report(request):
 def monitoring(request):
 
     if request.method == 'POST':
-        orders = Order.objects.filter(status = 'Processing')
+        orders = Order.objects.filter(status = 'Your order is being prepared')
 
         ordersList = []
         for order in orders:
