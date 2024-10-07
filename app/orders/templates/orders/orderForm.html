@@ -70,8 +70,6 @@
                                 <strong>{{ pizza.ingredients }}</strong>
                                 {% if pizza.is_vegetarian %}
                                     <span class="ingredient-info" data-tooltip="Vegetarian">&#9432;</span>
-                                {% elif pizza.is_vegan %}
-                                    <span class="ingredient-info" data-tooltip="Vegan">&#9432;</span>
                                 {% endif %}
                                 <span class="ingredient-info" data-toggle="tooltip" title="{{ ingredient_info }}"></span>
                             </td>
@@ -414,27 +412,7 @@
                 }
             });
 
-            document.addEventListener('DOMContentLoaded', function () {
-                const vegetarianIngredients = ['mozzarella', 'tomato sauce', 'basil','zucchini', 'eggplant', 'peppers', 'pineaplle', 'onions', 'mushrooms', 'olives', 'ricotta', 'parmesan'];
-                const veganIngredients = ['tomato sauce', 'basil','zucchini', 'eggplant', 'peppers', 'pineaplle', 'onions', 'mushrooms', 'olives'];
-
-                // Select all ingredient info icons
-                const infoIcons = document.querySelectorAll('.ingredient-info');
-
-                infoIcons.forEach(icon => {
-                    const ingredients = icon.getAttribute('data-ingredients').toLowerCase();
-                    let isVegetarian = vegetarianIngredients.every(ingredient => ingredients.includes(ingredient));
-                    let isVegan = veganIngredients.every(ingredient => ingredients.includes(ingredient));
-
-                    if (isVegan) {
-                        icon.setAttribute('data-tooltip', 'Vegan');
-                    } else if (isVegetarian) {
-                        icon.setAttribute('data-tooltip', 'Vegetarian');
-                    } else {
-                        icon.style.display = 'none'; // Hide the icon if it's neither vegetarian nor vegan
-                    }
-                });
-            });
+            
     });
     </script>
 </body>

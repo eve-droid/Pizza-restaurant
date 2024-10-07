@@ -119,11 +119,7 @@ def create_order(request):
                     'cheapest_drink': cheapest_drink,  
                 })
             
-            #check the dietery of pizzas
-            for pizza in pizzas:
-                pizza.is_vegetarian = pizza.check_if_vegetarian()
-                pizza.save()
-                print(pizza.is_vegetarian)
+            
             # Now create and save the Delivery instance
             delivery = Delivery(Delivery_order=order)  # Create a delivery instance
             delivery.set_delivery_time()  # Set the delivery time
@@ -137,6 +133,12 @@ def create_order(request):
     else:
         form = OrderForm()
 
+    #check the dietery of pizzas
+    for pizza in pizzas:
+        pizza.is_vegetarian = pizza.check_if_vegetarian()
+        pizza.save()
+        print(pizza.is_vegetarian)
+        
     return render(request, 'orders/orderForm.html', {
         'form': form,
         'pizzas': pizzas,  
