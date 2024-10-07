@@ -154,14 +154,14 @@ class Order(models.Model):
         self.save()
 
     def assign_delivery_person(self):
-        # Get all available delivery persons for the customer’s city
-        available_person = DeliveryPerson.objects.filter(available=True, city=self.customer.address_city).first()
+        # Get all available delivery persons for the customer’s postal code
+        available_person = DeliveryPerson.objects.filter(available=True, postal_code=self.customer.postal_code).first()
 
         if available_person:
             available_person.assign_delivery(self)
         else:
-            raise ValueError("No available delivery person for this city.")
-
+            raise ValueError("No available delivery person for this postal code.")
+        
     def cancel_order(self):
         for item in self.items.all():
             if item.pizza:
@@ -193,20 +193,17 @@ class Delivery(models.Model):
 
 class DeliveryPerson(models.Model):
     name = models.CharField(max_length=100)
-    city = models.CharField(max_length=100)  # Changed from postal_code to city
-    available = models.BooleanField(default=True)
-    assigned_orders = models.IntegerField(default=0)
-    last_assigned_time = models.DateTimeField(null=True, blank=True)
-
-
+    postal_code = models.CharField(max_length=20) # Postal code area they are assigned to
+    available = models.BooleanField(default=True) # True if they are available for delivery
+    assigned_orders = models.IntegerField(default=0) # Number of orders they are handling
+    last_assigned_time = models.DateTimeField(null=True, blank=True)  # New field to track last delivery time
     
     def __str__(self):
-        return f"{self.name} - {self.city}"
+        return f"{self.name} - {self.postal_code}"
     
-    def is_available(self, customer_city):
-        # Check if delivery person is available and assigned to the correct city
-        return self.available and self.assigned_orders < 3 and self.city == customer_city
-
+    def is_available(self, postal_code):
+        # Check if delivery person is available and assigned to the correct postal code
+        return self.available and self.assigned_orders < 3 and self.postal_code == postal_code
     
     def assign_delivery(self, order):
         """
@@ -221,7 +218,7 @@ class DeliveryPerson(models.Model):
         order.delivery_person = self
         order.estimated_delivery_time = timezone.now() + timedelta(minutes=30)  # Set estimated delivery time
         order.save()
-
+        
         # Schedule them to be available again after 30 minutes
         self._schedule_availability()
 

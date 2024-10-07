@@ -2,6 +2,7 @@ from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from datetime import timedelta
 
 
 from app.customers.models import Customer
@@ -164,8 +165,6 @@ def create_order(request):
         'cheapest_drink': cheapest_drink,
     })
 
-
-
 def validate_discount_code(request):
     code = request.GET.get('code', '').strip()  # Get the code from the GET request
     has_discount_code = request.GET.get('has_discount_code', 'false').lower() == 'true'
@@ -239,6 +238,8 @@ def mark_as_delivered(request, order_id):
     if order.status == 'Out for Delivery':
         order.update_status('Delivered')
     return redirect('track_order', order_id=order_id)
+
+
 
 def assign_delivery_person(order):
     #find available delivery persons for the order's postal code
