@@ -22,16 +22,16 @@ class Pizza(models.Model):
         for ingredient in self.get_ingredients():
             self.price += All_Ingredients.objects.get(name = ingredient).price
 
-        self.price += (self.price* Decimal(0.4))
-        self.price += (self.price* Decimal(0.09))
-        self.price = self.price.quantize(Decimal('1'), rounding=ROUND_UP) - Decimal(0.01)
-        self.price = self.price.quantize(Decimal('0.01'), rounding=ROUND_UP)
+        self.price += (self.price* Decimal(0.4)) #40% benefit margin
+        self.price += (self.price* Decimal(0.09)) #9% tax
+        self.price = self.price.quantize(Decimal('1'), rounding=ROUND_UP) - Decimal(0.01) #round up to the nearest euro minus 1 cent 
+        self.price = self.price.quantize(Decimal('0.01'), rounding=ROUND_UP) #make the price look good (eg .99)
         return self.price
     
     def check_if_vegetarian(self):
         # Check if the pizza is vegetarian
         for ingredient in self.get_ingredients():
-            if ingredient.vegetarian == False:
+            if All_Ingredients.objects.get(name = ingredient).vegetarian == False:
                 return False
         return True
     
@@ -66,7 +66,7 @@ class Drink(models.Model):
 class Order(models.Model):
     Status_Choices = [
         ('Processing', 'Processing'),
-        ('Your order is being prepared', 'Your order is being prepared'),  # Added new status for Making
+        ('Your order is being prepared', 'Your order is being prepared'),  
         ('Out for Delivery', 'Out for Delivery'),
         ('Delivered', 'Delivered'),
         ('Cancelled', 'Cancelled')
@@ -148,7 +148,7 @@ class Order(models.Model):
     def cancel_order(self):
         for item in self.items.all():
             if item.pizza:
-                self.customer.count_pizza -= item.quantity
+                self.customer.count_pizza -= item.quantity # remove the pizza count from the customer
         self.customer.save()
         self.status = 'Cancelled'
         return self

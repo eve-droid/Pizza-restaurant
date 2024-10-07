@@ -2,7 +2,6 @@ from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from datetime import timedelta
 
 
 from app.customers.models import Customer
@@ -122,7 +121,6 @@ def create_order(request):
             
             #check the dietery of pizzas
             for pizza in pizzas:
-                pizza.is_vegan = pizza.check_if_vegan()
                 pizza.is_vegetarian = pizza.check_if_vegetarian()
                 pizza.save()
                 print(pizza.is_vegetarian)
@@ -131,7 +129,7 @@ def create_order(request):
             delivery.set_delivery_time()  # Set the delivery time
             delivery.save()
             order.delivery_id = delivery.id
-            
+
             order.save()  
 
 
