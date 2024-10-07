@@ -82,6 +82,7 @@ def monitoring(request):
             ordersList.append({
                 'id': order.id,
                 'customer_name': order.customer.name,
+                'status': order.status,
                 'items': itemsList
             })
 

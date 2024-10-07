@@ -30,17 +30,8 @@ class Pizza(models.Model):
     
     def check_if_vegetarian(self):
         # Check if the pizza is vegetarian
-        vegetarian_ingredients = ['mozzarella', 'tomato sauce', 'basil','zucchini', 'eggplant', 'peppers', 'pineaplle', 'onions', 'mushrooms', 'olives', 'ricotta', 'parmesan']
         for ingredient in self.get_ingredients():
-            if ingredient not in vegetarian_ingredients:
-                return False
-        return True
-    
-    def check_if_vegan(self):
-        # Check if the pizza is vegan
-        vegan_ingredients = ['tomato sauce', 'basil','zucchini', 'eggplant', 'peppers', 'pineaplle', 'onions', 'mushrooms', 'olives']
-        for ingredient in self.get_ingredients():
-            if ingredient not in vegan_ingredients:
+            if ingredient.vegetarian == False:
                 return False
         return True
     
@@ -52,6 +43,7 @@ class Pizza(models.Model):
 class All_Ingredients(models.Model):
     name = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=5, decimal_places=2)
+    vegetarian = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name

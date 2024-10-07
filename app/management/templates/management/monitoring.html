@@ -24,6 +24,7 @@
                 <tr>
                     <th scope="col">Order ID</th>
                     <th scope="col">Customer Name</th>
+                    <th scope="col">Order Status</th>
                     <th scope="col">Order Details</th>
                 </tr>
             </thead>
@@ -70,6 +71,7 @@
                         row.innerHTML = `
                             <td>${order.id}</td>
                             <td>${order.customer_name}</td>
+                            <td>${order.status}</td>
                             <td>${itemsList}</td> 
                         `;
                         tableBody.appendChild(row);

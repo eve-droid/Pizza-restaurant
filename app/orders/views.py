@@ -131,6 +131,7 @@ def create_order(request):
             delivery.set_delivery_time()  # Set the delivery time
             delivery.save()
             order.delivery_id = delivery.id
+            
             order.save()  
 
 
