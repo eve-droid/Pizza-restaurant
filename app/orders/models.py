@@ -22,16 +22,25 @@ class Pizza(models.Model):
         for ingredient in self.get_ingredients():
             self.price += All_Ingredients.objects.get(name = ingredient).price
 
-        self.price += (self.price* Decimal(0.4)) #40% benefit margin
-        self.price += (self.price* Decimal(0.09)) #9% tax
-        self.price = self.price.quantize(Decimal('1'), rounding=ROUND_UP) - Decimal(0.01) #round up to the nearest euro minus 1 cent 
-        self.price = self.price.quantize(Decimal('0.01'), rounding=ROUND_UP) #make the price look good (eg .99)
+        self.price += (self.price* Decimal(0.4))
+        self.price += (self.price* Decimal(0.09))
+        self.price = self.price.quantize(Decimal('1'), rounding=ROUND_UP) - Decimal(0.01)
+        self.price = self.price.quantize(Decimal('0.01'), rounding=ROUND_UP)
         return self.price
     
     def check_if_vegetarian(self):
         # Check if the pizza is vegetarian
+        vegetarian_ingredients = ['mozzarella', 'tomato sauce', 'basil','zucchini', 'eggplant', 'peppers', 'pineaplle', 'onions', 'mushrooms', 'olives', 'ricotta', 'parmesan']
         for ingredient in self.get_ingredients():
-            if All_Ingredients.objects.get(name = ingredient).vegetarian == False:
+            if ingredient not in vegetarian_ingredients:
+                return False
+        return True
+    
+    def check_if_vegan(self):
+        # Check if the pizza is vegan
+        vegan_ingredients = ['tomato sauce', 'basil','zucchini', 'eggplant', 'peppers', 'pineaplle', 'onions', 'mushrooms', 'olives']
+        for ingredient in self.get_ingredients():
+            if ingredient not in vegan_ingredients:
                 return False
         return True
     
@@ -43,7 +52,6 @@ class Pizza(models.Model):
 class All_Ingredients(models.Model):
     name = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=5, decimal_places=2)
-    vegetarian = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -66,7 +74,7 @@ class Drink(models.Model):
 class Order(models.Model):
     Status_Choices = [
         ('Processing', 'Processing'),
-        ('Your order is being prepared', 'Your order is being prepared'),  
+        ('Making', 'Making'),  # Added new status for Making
         ('Out for Delivery', 'Out for Delivery'),
         ('Delivered', 'Delivered'),
         ('Cancelled', 'Cancelled')
@@ -126,11 +134,11 @@ class Order(models.Model):
 
         # Step 1: After 5 minutes, change from "Processing" to "Making"
         if self.status == 'Processing' and time_since_order > timedelta(minutes=5):
-            self.status = 'Your order is being prepared'
+            self.status = 'Making'
             self.save()
 
         # Step 2: After 15 minutes (total 20 mins), change from "Making" to "Out for Delivery"
-        if self.status == 'Your order is being prepared' and time_since_order > timedelta(minutes=20):
+        if self.status == 'Making' and time_since_order > timedelta(minutes=20):
             self.status = 'Out for Delivery'
             self.estimated_delivery_time = now + timedelta(minutes=30)  # Update estimated delivery time
             self.save()
@@ -145,10 +153,19 @@ class Order(models.Model):
         self.status = new_status
         self.save()
 
+    def assign_delivery_person(self):
+        # Get all available delivery persons for the customer’s city
+        available_person = DeliveryPerson.objects.filter(available=True, city=self.customer.address_city).first()
+
+        if available_person:
+            available_person.assign_delivery(self)
+        else:
+            raise ValueError("No available delivery person for this city.")
+
     def cancel_order(self):
         for item in self.items.all():
             if item.pizza:
-                self.customer.count_pizza -= item.quantity # remove the pizza count from the customer
+                self.customer.count_pizza -= item.quantity
         self.customer.save()
         self.status = 'Cancelled'
         return self
@@ -176,32 +193,47 @@ class Delivery(models.Model):
 
 class DeliveryPerson(models.Model):
     name = models.CharField(max_length=100)
-    postal_code = models.CharField(max_length=20) #postal code area they are assigned to
-    available = models.BooleanField(default=True) #true if they are available for delivery
-    assigned_orders = models.IntegerField(default=0) #number of orders they are handling
+    city = models.CharField(max_length=100)  # Changed from postal_code to city
+    available = models.BooleanField(default=True)
+    assigned_orders = models.IntegerField(default=0)
+    last_assigned_time = models.DateTimeField(null=True, blank=True)
+
+
     
     def __str__(self):
-        return f"{self.name} - {self.postal_code}"
+        return f"{self.name} - {self.city}"
     
-    def is_available(self):
-        return self.available and self.assigned_orders < 3
+    def is_available(self, customer_city):
+        # Check if delivery person is available and assigned to the correct city
+        return self.available and self.assigned_orders < 3 and self.city == customer_city
+
     
-    def assign_delivery_person(self):
-        available_person = DeliveryPerson.objects.filter(available=True).first()
-        if available_person:
-            self.delivery_person = available_person
-            available_person.assigned_orders += 1
-            available_person.save()
+    def assign_delivery(self, order):
+        """
+        Assign delivery to this person and mark them unavailable for 30 minutes.
+        """
+        self.assigned_orders += 1
+        self.available = False
+        self.last_assigned_time = timezone.now()
+        self.save()
+
+        # Assign this delivery person to the order
+        order.delivery_person = self
+        order.estimated_delivery_time = timezone.now() + timedelta(minutes=30)  # Set estimated delivery time
+        order.save()
+
+        # Schedule them to be available again after 30 minutes
+        self._schedule_availability()
+
+    def _schedule_availability(self):
+        """
+        Automatically make the delivery person available after 30 minutes.
+        This will require a periodic task (using Celery or Django's built-in timing mechanism).
+        """
+        # After 30 minutes, mark the delivery person as available again
+        available_time = self.last_assigned_time + timedelta(minutes=30)
+        if timezone.now() >= available_time:
+            self.available = True
+            self.assigned_orders -= 1
             self.save()
 
-
-def calculate_estimated_delivery_time(self):
-    if self.delivery_person:
-        minutes_per_order = 30
-        additional_minutes = self.delivery_person.assigned_orders * minutes_per_order
-        estimated_time = datetime.now() + timedelta(minutes=additional_minutes)
-        self.estimated_delivery_time = estimated_time
-        self.save()
-        print(f"Estimated Delivery Time: {estimated_time}")  # Debugging log
-    else:
-        print("No delivery person assigned!")  # Debugging log

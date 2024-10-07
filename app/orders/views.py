@@ -38,14 +38,13 @@ def create_order(request):
         if form.is_valid():
 
             customer_instance = get_object_or_404(Customer, user=request.user) 
-            order = form.save(commit=False)  #create order instance but do not save it yet
-            order.customer = customer_instance  #set customer
+            order = form.save(commit=False)  # Create order instance but do not save it yet
+            order.customer = customer_instance  # Set customer
             
-            #calculate total price before saving order
-        
-            order.save()  #now save the order to get its ID
+            # Calculate total price before saving order
+            order.save()  # Save the order to get its ID
 
-            quantities = request.POST  #get all POST data
+            quantities = request.POST  # Get all POST data
             for key in quantities.keys():
                 if key.startswith('pizzaQuantities['):  
                     pizza_id = key.split('[')[1][:-1]  
@@ -94,7 +93,7 @@ def create_order(request):
             # Apply 10% discount if the customer is eligible
             if additional_discount:
                 order.price *= Decimal(0.9)
-                customer.count_pizza %= 10 # Reset the count of pizzas
+                customer.count_pizza %= 10  # Reset the count of pizzas
                 customer.save()
 
             discount_code = request.POST.get('discountCode', '').strip()
@@ -118,22 +117,37 @@ def create_order(request):
                     'cheapest_pizza': cheapest_pizza,
                     'cheapest_drink': cheapest_drink,  
                 })
-            
-            
+
+            # Assign the delivery person based on the postal code
+            try:
+                order.assign_delivery_person()  # Assign a delivery person to the order
+            except ValueError as e:
+                # Handle the scenario where no delivery person is available
+                return render(request, 'orders/orderForm.html', {
+                    'form': form,
+                    'pizzas': pizzas,
+                    'drinks': drinks,
+                    'desserts': desserts,
+                    'error_message': str(e),  # Display the error message
+                    'additional_discount': additional_discount,
+                    'free_item_eligible': free_item_eligible,
+                    'cheapest_pizza': cheapest_pizza,
+                    'cheapest_drink': cheapest_drink,
+                })
+
             # Now create and save the Delivery instance
             delivery = Delivery(Delivery_order=order)  # Create a delivery instance
             delivery.set_delivery_time()  # Set the delivery time
             delivery.save()
             order.delivery_id = delivery.id
-
             order.save()  
 
-
             return redirect('order_success', pk=order.pk)
+
     else:
         form = OrderForm()
 
-    #check the dietery of pizzas
+    # Check the dietary information of pizzas
     for pizza in pizzas:
         pizza.is_vegetarian = pizza.check_if_vegetarian()
         pizza.save()
@@ -149,6 +163,7 @@ def create_order(request):
         'cheapest_pizza': cheapest_pizza,
         'cheapest_drink': cheapest_drink,
     })
+
 
 
 def validate_discount_code(request):
