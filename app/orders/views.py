@@ -123,10 +123,10 @@ def create_order(request):
                 order.save()
 
             # Create and save the Delivery instance
-            delivery = Delivery(Delivery_order=order)
+            delivery = Delivery()
             delivery.set_delivery_time()
             delivery.save()
-            order.delivery_id = delivery.id
+            order.delivery = delivery
             order.save()
 
             return redirect('order_success', pk=order.pk)
@@ -175,12 +175,15 @@ def validate_discount_code(request):
             return JsonResponse({'valid': False, 'message': 'This discount code is not valid.'})
     except Discount.DoesNotExist:
         return JsonResponse({'valid': False, 'message': 'This discount code does not exist.'})
+        
 
 def order_success(request, pk):
     order = get_object_or_404(Order, pk=pk)
     
     order.auto_update_status()
-    
+
+    mark_as_delivered(order)
+
     delivery_person = order.delivery_person
 
     if delivery_person:
@@ -227,12 +230,11 @@ def start_delivery(request, order_id):
         delivery.save()
     return redirect('track_order', order_id=order_id)
 
-def mark_as_delivered(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
+def mark_as_delivered(request, order):
     if order.status == 'Out for Delivery':
         order.deliver_order()  # Call the deliver_order method
         order.update_status('Delivered')
-    return redirect('track_order', order_id=order_id)
+        delivery_person = order.delivery_person
 
 def assign_delivery_person(order):
     # Get only available delivery persons with no ongoing orders (assigned_orders == 0)

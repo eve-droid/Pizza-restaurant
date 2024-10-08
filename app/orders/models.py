@@ -166,10 +166,12 @@ class Order(models.Model):
         if self.status == 'Out for Delivery' and now >= self.estimated_delivery_time:
             self.deliver_order()  # Call the method to handle order delivery
 
+
     def update_status(self, new_status):
         # Update the status of the order.
         self.status = new_status
         self.save()
+
 
     def assign_delivery_person(self):
         # Get all available delivery persons for the customer’s city
@@ -206,8 +208,8 @@ class OrderItem(models.Model):
 
 
 class Delivery(models.Model):
-    Delivery_order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='deliveries', null=False)
     delivery_time = models.DateTimeField(null=True, blank=True)
+    delivery_person = 
 
     def set_delivery_time(self):
         # Time for when the delivery starts
