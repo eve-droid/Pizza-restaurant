@@ -128,6 +128,22 @@ class Order(models.Model):
         # Estimate the delivery time to be 30 minutes after the order time.
         return self.order_time + timedelta(minutes=30)
 
+    def deliver_order(self):
+        """
+        Mark the order as delivered and update the delivery person’s availability.
+        """
+        self.status = 'Delivered'
+        self.save()  # This triggers the post_save signal to update availability
+
+        if self.delivery_person:
+            # Update the delivery person's assigned orders and availability
+            self.delivery_person.assigned_orders -= 1
+            if self.delivery_person.assigned_orders <= 0:
+                self.delivery_person.available = True  # Make the delivery person available
+                self.delivery_person.assigned_orders = 0  # Ensure it doesn't go negative
+
+            self.delivery_person.save()  # Save changes to the delivery person
+
     def auto_update_status(self):
         """
         Automatically update the status of the order based on elapsed time and delivery progress.
@@ -148,8 +164,7 @@ class Order(models.Model):
 
         # Step 3: Change to "Delivered" once the estimated delivery time is reached
         if self.status == 'Out for Delivery' and now >= self.estimated_delivery_time:
-            self.status = 'Delivered'
-            self.save()
+            self.deliver_order()  # Call the method to handle order delivery
 
     def update_status(self, new_status):
         # Update the status of the order.
@@ -211,34 +226,46 @@ class DeliveryPerson(models.Model):
         return f"{self.name} - {self.address_city}"
     
     def assign_delivery(self, order):
-        self.assigned_orders += 1
-        self.available = False
-        self.last_assigned_time = timezone.now()
-        self.save()
+        # This method assigns the delivery person to an order and marks them unavailable.
+        if self.assigned_orders == 0:  # Only proceed if the person is free (assigned_orders = 0)
+            self.assigned_orders += 1
+            self.available = False  # Immediately mark the delivery person unavailable
+            self.last_assigned_time = timezone.now()
+            self.save()
 
-        # Assign this delivery person to the order
-        order.delivery_person = self
-        order.estimated_delivery_time = timezone.now() + timedelta(minutes=30)  # Set estimated delivery time
-        order.save()
+            # Assign this delivery person to the order
+            order.delivery_person = self
+            order.estimated_delivery_time = timezone.now() + timedelta(minutes=30)  # Set estimated delivery time
+            order.save()
 
-        # Schedule them to be available again after 30 minutes
-        self._schedule_availability()
+            # Schedule them to be available again after 30 minutes or after order delivery
+            self._schedule_availability()
+        else:
+            raise ValueError("Delivery person is already assigned to another order.")
 
     def _schedule_availability(self):
         """
-        Automatically make the delivery person available after 30 minutes.
+        Automatically make the delivery person available after 30 minutes or once the order is marked as 'Delivered'.
         """
         available_time = self.last_assigned_time + timedelta(minutes=30)
         if timezone.now() >= available_time:
             self.available = True
-            self.assigned_orders -= 1
+            self.assigned_orders = 0  # Reset the assigned orders count
             self.save()
+
 
 
 @receiver(post_save, sender=Order)
 def update_availability(sender, instance, created, **kwargs):
+    # Only proceed if the order is marked as "Delivered"
     if instance.status == 'Delivered':
         if instance.delivery_person:
-            instance.delivery_person.available = True
-            instance.delivery_person.assigned_orders -= 0
+            # Reduce the number of assigned orders
+            instance.delivery_person.assigned_orders -= 1
+
+            # If there are no more assigned orders, make the delivery person available
+            if instance.delivery_person.assigned_orders <= 0:
+                instance.delivery_person.available = True
+                instance.delivery_person.assigned_orders = 0  # Ensure it doesn't go negative
+
             instance.delivery_person.save()
