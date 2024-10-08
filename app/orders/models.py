@@ -4,6 +4,8 @@ from django.db import models
 from django.dispatch import receiver
 from django.utils import timezone
 from django.db.models.signals import post_save
+from django.db.models import Q
+
 
 
 from app.customers.models import Customer
@@ -13,7 +15,6 @@ class Pizza(models.Model):
     name = models.CharField(max_length=100)
     ingredients = models.CharField(max_length=200, default='')
     is_vegetarian = models.BooleanField(default=False)
-    is_vegan = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -32,17 +33,8 @@ class Pizza(models.Model):
     
     def check_if_vegetarian(self):
         # Check if the pizza is vegetarian
-        vegetarian_ingredients = ['mozzarella', 'tomato sauce', 'basil', 'zucchini', 'eggplant', 'peppers', 'pineaplle', 'onions', 'mushrooms', 'olives', 'ricotta', 'parmesan']
         for ingredient in self.get_ingredients():
-            if ingredient not in vegetarian_ingredients:
-                return False
-        return True
-    
-    def check_if_vegan(self):
-        # Check if the pizza is vegan
-        vegan_ingredients = ['tomato sauce', 'basil', 'zucchini', 'eggplant', 'peppers', 'pineaplle', 'onions', 'mushrooms', 'olives']
-        for ingredient in self.get_ingredients():
-            if ingredient not in vegan_ingredients:
+            if All_Ingredients.objects.get(name=ingredient).vegetarian == False:
                 return False
         return True
     
@@ -53,6 +45,7 @@ class Pizza(models.Model):
 class All_Ingredients(models.Model):
     name = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=5, decimal_places=2)
+    vegetarian = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -77,7 +70,7 @@ class Drink(models.Model):
 class Order(models.Model):
     Status_Choices = [
         ('Processing', 'Processing'),
-        ('Making', 'Making'),  # Added new status for Making
+        ('Your Order is being prepared', 'Your Order is being prepared'),  # Added new status for Your Order is being prepared
         ('Out for Delivery', 'Out for Delivery'),
         ('Delivered', 'Delivered'),
         ('Cancelled', 'Cancelled')
@@ -86,9 +79,6 @@ class Order(models.Model):
     price = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     order_time = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=100, choices=Status_Choices, default='Processing')
-    delivery = models.OneToOneField('Delivery', null=True, blank=True, on_delete=models.SET_NULL)
-    delivery_person = models.ForeignKey('DeliveryPerson', on_delete=models.SET_NULL, null=True, blank=True)
-    estimated_delivery_time = models.DateTimeField(null=True, blank=True)
     has_discount_code = models.BooleanField(default=False)
 
     def get_total_price(self):
@@ -124,74 +114,40 @@ class Order(models.Model):
 
         return self.price, discount_error
 
-    def estimate_delivery_time(self):
-        # Estimate the delivery time to be 30 minutes after the order time.
-        return self.order_time + timedelta(minutes=30)
 
-    def deliver_order(self):
-        """
-        Mark the order as delivered and update the delivery person’s availability.
-        """
-        self.status = 'Delivered'
-        self.save()  # This triggers the post_save signal to update availability
-
-        if self.delivery_person:
-            # Update the delivery person's assigned orders and availability
-            self.delivery_person.assigned_orders -= 1
-            if self.delivery_person.assigned_orders <= 0:
-                self.delivery_person.available = True  # Make the delivery person available
-                self.delivery_person.assigned_orders = 0  # Ensure it doesn't go negative
-
-            self.delivery_person.save()  # Save changes to the delivery person
-
-    def auto_update_status(self):
-        """
-        Automatically update the status of the order based on elapsed time and delivery progress.
-        """
+    def auto_update_order_status(self):
         now = timezone.now()
         time_since_order = now - self.order_time
+        delivery = Delivery.objects.get(order=self)
+        print(time_since_order)
 
-        # Step 1: After 5 minutes, change from "Processing" to "Making"
+        # Step 1: After 5 minutes, change from "Processing" to "Your Order is being prepared"
         if self.status == 'Processing' and time_since_order > timedelta(minutes=5):
-            self.status = 'Making'
-            self.save()
+            self.status = 'Your Order is being prepared'
+            print(self.status)
 
-        # Step 2: After 15 minutes (total 20 mins), change from "Making" to "Out for Delivery"
-        if self.status == 'Making' and time_since_order > timedelta(minutes=20):
+        # Step 2: After 15 minutes (total 20 mins), change from "Your Order is being prepared" to "Out for Delivery"
+        elif self.status == 'Your Order is being prepared' and time_since_order > timedelta(minutes=20):
             self.status = 'Out for Delivery'
             self.estimated_delivery_time = now + timedelta(minutes=30)  # Update estimated delivery time
-            self.save()
 
         # Step 3: Change to "Delivered" once the estimated delivery time is reached
-        if self.status == 'Out for Delivery' and now >= self.estimated_delivery_time:
-            self.deliver_order()  # Call the method to handle order delivery
+        elif self.status == 'Out for Delivery' and now >= delivery.estimated_delivery_time:
+            delivery.deliver_order()  # Call the method to handle order delivery
+            self.status = 'Delivered'
 
-
-    def update_status(self, new_status):
-        # Update the status of the order.
-        self.status = new_status
         self.save()
 
-
-    def assign_delivery_person(self):
-        # Get all available delivery persons for the customer’s city
-        available_person = DeliveryPerson.objects.filter(available=True, address_city=self.customer.address_city).first()
-
-        if available_person:
-            available_person.assign_delivery(self)
-            return available_person
-        else:
-            # No delivery person available, update status to 'Pending Delivery' and let the order proceed
-            self.status = 'Pending Delivery'
-            self.save()
-            return None  # You can return None to indicate no delivery person was assigned
-
     def cancel_order(self):
+        print("Cancelling order")
         for item in self.items.all():
             if item.pizza:
                 self.customer.count_pizza -= item.quantity
         self.customer.save()
         self.status = 'Cancelled'
+        delivery = Delivery.objects.get(order=self)
+        delivery_person = delivery.delivery_person
+        delivery_person.delivery_done()
         self.save()
         return self
 
@@ -208,66 +164,78 @@ class OrderItem(models.Model):
 
 
 class Delivery(models.Model):
-    delivery_time = models.DateTimeField(null=True, blank=True)
-    delivery_person = 
+    order = models.OneToOneField('Order', on_delete=models.CASCADE)
+    delivery_person = models.ForeignKey('DeliveryPerson', on_delete=models.SET_NULL, null=True, blank=True)
+    estimated_delivery_time = models.DateTimeField(null=True, blank=True)
+
+    def assign_delivery_person(self, order):
+        postal_code = order.customer.address_postal_code
+        
+        #if there is someone with the right postal code, which already has been assigned with max 2 deliveries in the last 3 min, select that delivery person
+        delivery_person = DeliveryPerson.objects.filter(Q(assigned_orders__lt=3) & Q(postal_code_area=postal_code) & Q(assigned_time__gt = order.order_time-timedelta(minutes=3))).first()
+        if delivery_person:
+            delivery_person.set_delivery_person()
+            self.delivery_person = delivery_person
+        else:
+            #else select someone who is available and has the correct postal code
+            delivery_person = DeliveryPerson.objects.filter(Q(available=True) & Q(postal_code_area=postal_code)).first()
+            if delivery_person:
+                delivery_person.set_delivery_person()
+                self.delivery_person = delivery_person
+            else:
+                #else select someone who is available and has no postal code assigned
+                delivery_person = DeliveryPerson.objects.filter(postal_code_area = None).first() #assumption, we will always have enough personal for this case
+                delivery_person.postal_code_area = postal_code
+                delivery_person.set_delivery_person()
+                self.delivery_person = delivery_person
+        
+        self.save()
 
     def set_delivery_time(self):
-        # Time for when the delivery starts
-        if not self.delivery_time:
-            self.delivery_time = datetime.now() + timedelta(minutes=30)
+        # Set the estimated delivery time for the order
+        self.estimated_delivery_time = timezone.now() + timedelta(minutes=30)
+        self.save()
+
+    def deliver_order(self):
+        delivery_person = self.delivery_person
+        if delivery_person:
+            delivery_person.delivery_done()
+        
+
+
 
 
 class DeliveryPerson(models.Model):
     name = models.CharField(max_length=100)
-    address_city = models.CharField(max_length=100, default='Lyon')  # Changed to city field
+    postal_code_area = models.CharField(max_length=100, null = True, default=None)  # Changed to city field
     available = models.BooleanField(default=True)  # True if they are available for delivery
     assigned_orders = models.IntegerField(default=0)  # Number of orders they are handling
-    last_assigned_time = models.DateTimeField(null=True, blank=True)  # Track last delivery time
+    assigned_time = models.DateTimeField(null=True, blank=True)  # Track last delivery time
+
     
     def __str__(self):
         return f"{self.name} - {self.address_city}"
     
-    def assign_delivery(self, order):
-        # This method assigns the delivery person to an order and marks them unavailable.
-        if self.assigned_orders == 0:  # Only proceed if the person is free (assigned_orders = 0)
+
+    def is_available(self):
+        return (self.available or self.assigned_time+timedelta(minutes=30) <= timezone.now()) & (self.assigned_orders < 3)
+    
+
+    def set_delivery_person(self):
+        if self:  
+            print(self.name)
             self.assigned_orders += 1
             self.available = False  # Immediately mark the delivery person unavailable
-            self.last_assigned_time = timezone.now()
+            if self.assigned_orders == 1: 
+                self.assigned_time = timezone.now() #set the assigned time (only if it's the first order)
             self.save()
-
-            # Assign this delivery person to the order
-            order.delivery_person = self
-            order.estimated_delivery_time = timezone.now() + timedelta(minutes=30)  # Set estimated delivery time
-            order.save()
-
-            # Schedule them to be available again after 30 minutes or after order delivery
-            self._schedule_availability()
         else:
-            raise ValueError("Delivery person is already assigned to another order.")
+            raise ValueError("No delivery personnel available for this postal code.")
+        
 
-    def _schedule_availability(self):
-        """
-        Automatically make the delivery person available after 30 minutes or once the order is marked as 'Delivered'.
-        """
-        available_time = self.last_assigned_time + timedelta(minutes=30)
-        if timezone.now() >= available_time:
-            self.available = True
-            self.assigned_orders = 0  # Reset the assigned orders count
-            self.save()
+    def delivery_done(self):
+        self.assigned_orders -= 1
+        if self.assigned_orders == 0:
+            self.available = True  # Make the delivery person available
+        self.save()
 
-
-
-@receiver(post_save, sender=Order)
-def update_availability(sender, instance, created, **kwargs):
-    # Only proceed if the order is marked as "Delivered"
-    if instance.status == 'Delivered':
-        if instance.delivery_person:
-            # Reduce the number of assigned orders
-            instance.delivery_person.assigned_orders -= 1
-
-            # If there are no more assigned orders, make the delivery person available
-            if instance.delivery_person.assigned_orders <= 0:
-                instance.delivery_person.available = True
-                instance.delivery_person.assigned_orders = 0  # Ensure it doesn't go negative
-
-            instance.delivery_person.save()

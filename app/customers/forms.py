@@ -6,12 +6,13 @@ from app.customers.models import Customer
 
 class CustomUserCreationForm(UserCreationForm):
 
-    name = forms.CharField(max_length=100)
-    gender = forms.ChoiceField(choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')])
-    birthday = forms.DateField(widget=forms.SelectDateWidget(years=range(1900, 2025)))
-    phone = forms.CharField(max_length=100)
-    address_number_street = forms.CharField(max_length=100)
-    address_city = forms.CharField(max_length=100)  
+    name = forms.CharField(max_length=100, required=True)
+    gender = forms.ChoiceField(choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')], required=True)
+    birthday = forms.DateField(widget=forms.SelectDateWidget(years=range(1900, 2025)), required=True)
+    phone = forms.CharField(max_length=100, required=True)
+    address_number_street = forms.CharField(max_length=100, required=True)
+    address_city = forms.CharField(max_length=100, required=True)  
+    address_postal_code = forms.CharField(max_length=100, required=True)
 
     class Meta:
         model = User
@@ -26,9 +27,10 @@ class CustomUserCreationForm(UserCreationForm):
             user=user,
             name=self.cleaned_data.get('name'),
             phone=self.cleaned_data.get('phone'),
-            address_number_street=self.cleaned_data.get('address_number_street'),
-            address_city=self.cleaned_data.get('address_city'),  
             birthday=self.cleaned_data.get('birthday'),
+            address_number_street=self.cleaned_data.get('address_number_street'),
+            address_city=self.cleaned_data.get('address_city'),
+            address_postal_code=self.cleaned_data.get('address_postal_code'),  
             gender=self.cleaned_data.get('gender'),
         )
         if commit:

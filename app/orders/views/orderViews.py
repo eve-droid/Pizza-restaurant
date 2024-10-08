@@ -4,8 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from app.customers.models import Customer
 from app.discounts.models import Discount
-from .forms import OrderForm
-from .models import Delivery, Dessert, Drink, Order, OrderItem, Pizza, DeliveryPerson
+from app.orders.forms import OrderForm
+from app.orders.models import Delivery, Dessert, Drink, Order, OrderItem, Pizza, DeliveryPerson
 
 @login_required(login_url='/login/')
 def create_order(request):
@@ -114,21 +114,6 @@ def create_order(request):
                     'cheapest_drink': cheapest_drink,  
                 })
 
-            # Handling delivery person assignment
-            try:
-                assign_delivery_person(order)
-                update_delivery_persons()  # Call the update function here
-            except ValueError as e:
-                order.status = 'Pending Delivery'
-                order.save()
-
-            # Create and save the Delivery instance
-            delivery = Delivery()
-            delivery.set_delivery_time()
-            delivery.save()
-            order.delivery = delivery
-            order.save()
-
             return redirect('order_success', pk=order.pk)
 
         else:
@@ -177,83 +162,3 @@ def validate_discount_code(request):
         return JsonResponse({'valid': False, 'message': 'This discount code does not exist.'})
         
 
-def order_success(request, pk):
-    order = get_object_or_404(Order, pk=pk)
-    
-    order.auto_update_status()
-
-    mark_as_delivered(order)
-
-    delivery_person = order.delivery_person
-
-    if delivery_person:
-        order.estimated_delivery_time = order.estimate_delivery_time()  
-        estimated_time = order.estimated_delivery_time
-    else:
-        estimated_time = None 
-        order.status = 'Pending Delivery'  
-        order.save()
-
-    return render(request, 'orders/orderSuccess.html', {
-        'order': order,
-        'order_time': order.order_time,
-        'estimated_delivery_time': estimated_time.strftime('%H:%M:') if estimated_time else 'Not available',
-        'delivery_person': delivery_person, 
-    })
-
-def cancel_order(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
-    try:
-        order.cancel_order()
-        order.save()
-        return JsonResponse({'success': True, 'message': 'Order cancelled successfully.'})
-    except ValueError as e:
-        return JsonResponse({'success': False, 'error': str(e)})
-
-def track_order(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
-    if not order.estimated_delivery_time:
-        order.estimated_delivery_time()
-    
-    return JsonResponse({
-        'status': order.status,
-        'estimated_delivery_time': order.estimated_delivery_time.strftime("%Y-%m-%d %H:%M") if order.estimated_delivery_time else "Not available"
-    })
-
-def start_delivery(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
-    
-    if order.status == 'Processing':
-        delivery = Delivery.objects.create(Delivery_order=order)
-        delivery.set_delivery_time()
-        order.update_status('Out for Delivery')
-        delivery.save()
-    return redirect('track_order', order_id=order_id)
-
-def mark_as_delivered(request, order):
-    if order.status == 'Out for Delivery':
-        order.deliver_order()  # Call the deliver_order method
-        order.update_status('Delivered')
-        delivery_person = order.delivery_person
-
-def assign_delivery_person(order):
-    # Get only available delivery persons with no ongoing orders (assigned_orders == 0)
-    available_persons = DeliveryPerson.objects.filter(address_city=order.customer.address_city, available=True, assigned_orders=0)
-    
-    if available_persons.exists():
-        delivery_person = available_persons.first()  # Assign the first available person
-        delivery_person.assign_delivery(order)  # Call the method to assign and update their status
-        return delivery_person
-    else:
-        raise ValueError("No delivery personnel available for this postal code.")
-
-def update_delivery_persons():
-    # Example logic to update delivery persons' availability or assigned orders
-    for person in DeliveryPerson.objects.all():
-        if person.assigned_orders > 0:
-            person.assigned_orders -= 1  # Decrement the count
-            if person.assigned_orders == 0:
-                person.available = True  # Mark as available if no orders are assigned
-        else:
-            person.available = True  # Mark as available if not assigned any orders
-        person.save()

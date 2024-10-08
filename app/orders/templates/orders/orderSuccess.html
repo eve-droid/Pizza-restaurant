@@ -90,34 +90,58 @@
         }
     
         // Function to update the order status
+        function updateOrderInDB(status) {
+            const orderId = "{{ order.id }}"; // Assuming order ID is available in the template
+
+            fetch("{% url 'order_success' order.id %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}' // Ensure CSRF token is included
+                },
+                body: JSON.stringify({
+                    status: status, 
+                })
+            })
+            .then(response => response.json())
+            .catch(error => console.error('Error:', error));
+        }
+
         function updateOrderStatus() {
             const orderStatusElement = document.getElementById("order-status");
-    
+
             if (currentTime >= deliveredEndTime) {
                 orderStatusElement.textContent = "Delivered";
+                updateOrderInDB("Delivered"); // Update the DB
             } else if (currentTime >= outForDeliveryEndTime) {
                 orderStatusElement.textContent = "Out for Delivery";
+                updateOrderInDB("Out for Delivery"); // Update the DB
             } else if (currentTime >= makingEndTime) {
                 orderStatusElement.textContent = "Your order is being prepared";
+                updateOrderInDB("Being Prepared"); // Update the DB
             } else {
                 orderStatusElement.textContent = "Processing";
+                updateOrderInDB("Processing"); // Update the DB
             }
         }
-    
-        // Initially set the correct order status
+
         updateOrderStatus();
+    
     
         // Update the status at each specific time point
         setTimeout(() => {
             document.getElementById("order-status").textContent = "Your order is being prepared";
+            updateOrderInDB("Your order is being prepared");
         }, makingTime);
     
         setTimeout(() => {
             document.getElementById("order-status").textContent = "Out for Delivery";
+            updateOrderInDB("Out for Delivery");
         }, outForDeliveryTime);
     
         setTimeout(() => {
             document.getElementById("order-status").textContent = "Delivered";
+            updateOrderInDB("Delivered");
         }, deliveredTime);
     </script>
 
@@ -146,12 +170,15 @@
             }
 
             // Send cancellation request
-            fetch("{% url 'cancel_order' order.id %}", {
+            fetch("{% url 'order_success' order.id %}", {
                 method: "POST",
                 headers: {
                     "X-CSRFToken": "{{ csrf_token }}",
                     "Content-Type": "application/json"
-                }
+                },
+                body: JSON.stringify({
+                    status: "Cancelled" 
+                })
             })
             .then(response => {
                 if (response.ok) {
