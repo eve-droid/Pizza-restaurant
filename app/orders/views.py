@@ -1,4 +1,5 @@
 from decimal import Decimal
+from pyexpat.errors import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -21,92 +22,109 @@ def create_order(request):
     free_item_eligible = False
     cheapest_pizza = None
     cheapest_drink = None
+
     if user.is_authenticated:
-        customer = Customer.objects.get(user=user)
+        try:
+            customer = Customer.objects.get(user=user)
+            print("Customer instance retrieved:", customer)
+        except Customer.DoesNotExist:
+            print("Customer does not exist for user:", user)
+            return redirect('create_order')  # Or handle appropriately
 
         if customer.is_birthday_today():
             free_item_eligible = True
+            print("Customer is eligible for a free item due to birthday.")
         else:
             customer.had_BD_gift = False
             customer.save()
+            print("Customer birthday gift reset.")
 
         if customer.is_eligible_for_discount():
             additional_discount = True
+            print("Customer is eligible for an additional discount.")
 
     if request.method == 'POST':
         form = OrderForm(request.POST)
+        print("Form submitted.")
 
         if form.is_valid():
+            print("Form is valid.")
+            customer_instance = get_object_or_404(Customer, user=request.user)
+            order = form.save(commit=False)
+            order.customer = customer_instance
+            order.save()
+            print(f"Order saved with ID: {order.id}")
 
-            customer_instance = get_object_or_404(Customer, user=request.user) 
-            order = form.save(commit=False)  # Create order instance but do not save it yet
-            order.customer = customer_instance  # Set customer
-            
-            # Calculate total price before saving order
-            order.save()  # Save the order to get its ID
-
-            quantities = request.POST  # Get all POST data
+            quantities = request.POST
             for key in quantities.keys():
-                if key.startswith('pizzaQuantities['):  
-                    pizza_id = key.split('[')[1][:-1]  
-                    quantity = int(quantities[key]) 
+                if key.startswith('pizzaQuantities['):
+                    pizza_id = key.split('[')[1][:-1]
+                    quantity = int(quantities[key])
                     if quantity > 0:
-                        pizza = Pizza.objects.get(id=pizza_id)  
+                        pizza = Pizza.objects.get(id=pizza_id)
                         order_item = OrderItem(order=order, pizza=pizza, quantity=quantity)
                         order_item.save()
-                        # Update the count_pizza field of the customer
                         customer.count_pizza += quantity
                         customer.save()
-                        if (free_item_eligible and (cheapest_pizza is None or cheapest_pizza.calculate_price() > pizza.calculate_price())):
+                        if free_item_eligible and (cheapest_pizza is None or cheapest_pizza.calculate_price() > pizza.calculate_price()):
                             cheapest_pizza = pizza
-                elif key.startswith('drinkQuantities['):  
-                    drink_id = key.split('[')[1][:-1]  
-                    quantity = int(quantities[key]) 
+                        print(f"Added pizza: {pizza.name}, Quantity: {quantity}")
+                elif key.startswith('drinkQuantities['):
+                    drink_id = key.split('[')[1][:-1]
+                    quantity = int(quantities[key])
                     if quantity > 0:
-                        drink = Drink.objects.get(id=drink_id)  
+                        drink = Drink.objects.get(id=drink_id)
                         order_item = OrderItem(order=order, drink=drink, quantity=quantity)
                         order_item.save()
                         if free_item_eligible and (cheapest_drink is None or cheapest_drink.price > drink.price):
                             cheapest_drink = drink
-                elif key.startswith('dessertQuantities['):  
-                    dessert_id = key.split('[')[1][:-1]  
-                    quantity = int(quantities[key]) 
+                        print(f"Added drink: {drink.name}, Quantity: {quantity}")
+                elif key.startswith('dessertQuantities['):
+                    dessert_id = key.split('[')[1][:-1]
+                    quantity = int(quantities[key])
                     if quantity > 0:
-                        dessert = Dessert.objects.get(id=dessert_id)  
+                        dessert = Dessert.objects.get(id=dessert_id)
                         order_item = OrderItem(order=order, dessert=dessert, quantity=quantity)
                         order_item.save()
+                        print(f"Added dessert: {dessert.name}, Quantity: {quantity}")
 
             if free_item_eligible:
                 customer.had_BD_gift = True
                 customer.save()
+                print("Customer has received a birthday gift.")
+
                 if cheapest_pizza:
                     order_item = OrderItem.objects.filter(order=order, pizza=cheapest_pizza).first()
                     if order_item:
                         order_item.delete()
+                        print(f"Deleted cheapest pizza: {cheapest_pizza.name}")
+
                 if cheapest_drink:
                     order_item = OrderItem.objects.filter(order=order, drink=cheapest_drink).first()
                     if order_item:
                         order_item.delete()
-            
+                        print(f"Deleted cheapest drink: {cheapest_drink.name}")
+
             order.price = order.get_total_price()
             order.save()
+            print(f"Total order price calculated: {order.price}")
 
-            # Apply 10% discount if the customer is eligible
             if additional_discount:
                 order.price *= Decimal(0.9)
                 customer.count_pizza %= 10  # Reset the count of pizzas
                 customer.save()
+                print(f"Additional discount applied. New price: {order.price}")
 
             discount_code = request.POST.get('discountCode', '').strip()
             discount_error = None
 
-            # Server-side validation of the discount code
             if discount_code:
                 order.price, discount_error = order.apply_discount(discount_code)
                 order.save()
+                print(f"Discount applied. New price: {order.price}, Error: {discount_error}")
 
             if discount_error:
-                # If there's a discount error, show it to the user
+                print(f"Discount error: {discount_error}")
                 return render(request, 'orders/orderForm.html', {
                     'form': form,
                     'pizzas': pizzas,
@@ -119,31 +137,41 @@ def create_order(request):
                     'cheapest_drink': cheapest_drink,  
                 })
 
-            # Assign the delivery person based on the postal code
+            # Handling delivery person assignment
             try:
-                order.assign_delivery_person()  # Assign a delivery person to the order
+                order.assign_delivery_person()
+                print("Delivery person assigned.")
+                print(f"Delivery {DeliveryPerson.id} assigned to order {Order.id}.")
             except ValueError as e:
-                # Handle the scenario where no delivery person is available
-                return render(request, 'orders/orderForm.html', {
-                    'form': form,
-                    'pizzas': pizzas,
-                    'drinks': drinks,
-                    'desserts': desserts,
-                    'error_message': str(e),  # Display the error message
-                    'additional_discount': additional_discount,
-                    'free_item_eligible': free_item_eligible,
-                    'cheapest_pizza': cheapest_pizza,
-                    'cheapest_drink': cheapest_drink,
-                })
-
-            # Now create and save the Delivery instance
-            delivery = Delivery(Delivery_order=order)  # Create a delivery instance
-            delivery.set_delivery_time()  # Set the delivery time
+                print(f"Delivery person assignment error: {e}")
+                order.status = 'Pending Delivery'  # Update order status to 'Pending Delivery'
+                order.save()
+                messages.warning(request, "No delivery person is available. Your order will be processed shortly.")
+            
+            # Create and save the Delivery instance
+            delivery = Delivery(Delivery_order=order)
+            delivery.set_delivery_time()
             delivery.save()
             order.delivery_id = delivery.id
-            order.save()  
+            order.save()
+            print(f"Delivery created with ID: {delivery.id}")
 
+            # Redirect to order success page
             return redirect('order_success', pk=order.pk)
+
+        else:
+            print("Form is invalid.")
+            print(form.errors)
+            return render(request, 'orders/orderForm.html', {
+                'form': form,
+                'pizzas': pizzas,  
+                'drinks': drinks,
+                'desserts': desserts,
+                'additional_discount': additional_discount,
+                'free_item_eligible': free_item_eligible,
+                'cheapest_pizza': cheapest_pizza,
+                'cheapest_drink': cheapest_drink,
+            })
 
     else:
         form = OrderForm()
@@ -152,7 +180,7 @@ def create_order(request):
     for pizza in pizzas:
         pizza.is_vegetarian = pizza.check_if_vegetarian()
         pizza.save()
-        print(pizza.is_vegetarian)
+        print(f"{pizza.name} is vegetarian: {pizza.is_vegetarian}")
         
     return render(request, 'orders/orderForm.html', {
         'form': form,
@@ -186,20 +214,26 @@ def order_success(request, pk):
     # Automatically update the status before rendering the page
     order.auto_update_status()
     
+    delivery_person = order.assign_delivery_person()
+
     # Check if there's a delivery person assigned and calculate estimated delivery time
     delivery_person = order.delivery_person
+
     if delivery_person:
-        # Assuming you want to calculate the estimated time based on the delivery person's workload
-        order.calculate_estimated_delivery_time()  # Update the estimated delivery time
+        order.estimated_delivery_time = order.estimate_delivery_time()  # Update the estimated delivery time
         estimated_time = order.estimated_delivery_time
     else:
-        estimated_time = None  # If no delivery person is assigned yet
+        estimated_time = None 
+        order.status = 'Pending Delivery'  # Update order status to 'Pending Delivery'
+        order.save()
 
     return render(request, 'orders/orderSuccess.html', {
         'order': order,
         'order_time': order.order_time,
-        'estimated_delivery_time': estimated_time.strftime('%H:%M:%S') if estimated_time else 'Not available'
+        'estimated_delivery_time': estimated_time.strftime('%H:%M:%S') if estimated_time else 'Not available',
+        'delivery_person': delivery_person, 
     })
+
 
 
 def cancel_order(request, order_id):
@@ -215,18 +249,18 @@ def cancel_order(request, order_id):
 def track_order(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     if not order.estimated_delivery_time:
-        order.calculate_estimated_delivery_time()
+        order.estimated_delivery_time()
     
     return JsonResponse({
         'status': order.status,
-        'estimated_delivery_time': order.estimated_delivery_time.strftime("%Y-%m-%d %H:%M:%S") if order.estimated_delivery_time else "Not available"
+        'estimated_delivery_time': order.estimated_delivery_time.strftime("%Y-%m-%d %H:%M") if order.estimated_delivery_time else "Not available"
     })
 
 def start_delivery(request, order_id):
     #mark the order as 'Out for Delivery' and set the delivery time
     order = get_object_or_404(Order, id=order_id)
     if order.status == 'Processing':
-        delivery = Delivery.objects.create(order=order)
+        delivery = Delivery.objects.create(Delivery_order=order)
         delivery.set_delivery_time()
         order.update_status('Out for Delivery')
         delivery.save()
@@ -243,7 +277,7 @@ def mark_as_delivered(request, order_id):
 
 def assign_delivery_person(order):
     #find available delivery persons for the order's postal code
-    available_persons = DeliveryPerson.objects.filter(postal_code=order.customer.postal_code, available=True)
+    available_persons = DeliveryPerson.objects.filter(address_city=order.customer.address_city, available=True)
     
     if available_persons.exists():
         #assign first delivery guy that's available
