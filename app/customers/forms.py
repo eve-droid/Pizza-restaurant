@@ -5,8 +5,13 @@ from django.contrib.auth.models import User
 from app.customers.models import Customer
 
 class CustomUserCreationForm(UserCreationForm):
-    # Other fields remain the same...
-    address_city = forms.CharField(max_length=100)  # Change from postal code to city
+
+    name = forms.CharField(max_length=100)
+    gender = forms.ChoiceField(choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')])
+    birthday = forms.DateField(widget=forms.SelectDateWidget(years=range(1900, 2025)))
+    phone = forms.CharField(max_length=100)
+    address_number_street = forms.CharField(max_length=100)
+    address_city = forms.CharField(max_length=100)  
 
     class Meta:
         model = User
@@ -22,7 +27,7 @@ class CustomUserCreationForm(UserCreationForm):
             name=self.cleaned_data.get('name'),
             phone=self.cleaned_data.get('phone'),
             address_number_street=self.cleaned_data.get('address_number_street'),
-            address_city=self.cleaned_data.get('address_city'),  # Change here too
+            address_city=self.cleaned_data.get('address_city'),  
             birthday=self.cleaned_data.get('birthday'),
             gender=self.cleaned_data.get('gender'),
         )
