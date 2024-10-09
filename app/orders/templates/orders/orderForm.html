@@ -68,7 +68,7 @@
                             </td>
                             <td>
                                 <strong>{{ pizza.ingredients }}</strong>
-                                {% if pizza.is_vegetarian %}
+                                {% if pizza.check_if_vegetarian %}
                                     <span class="ingredient-info" data-tooltip="Vegetarian">&#9432;</span>
                                 {% endif %}
                                 <span class="ingredient-info" data-toggle="tooltip" title="{{ ingredient_info }}"></span>
@@ -163,7 +163,7 @@
             </div>
 
             <div class="text-center">
-                <button type="submit" class="btn btn-primary">Submit Order</button>
+                <button type = submit class="btn btn-primary">Submit Order</button>
             </div>
         </form>
     </div>
@@ -396,7 +396,7 @@
 
             form.addEventListener('submit', function (event) {
                 let pizzaSelected = false;
-
+                
                 // Check if at least one pizza is selected
                 quantityInputs.forEach(input => {
                     const quantity = parseInt(input.value);
@@ -410,10 +410,20 @@
                     event.preventDefault();
                     alert('Please select at least one pizza to place an order.');
                 }
+
             });
 
             
     });
+    </script>
+
+    <script>
+
+        document.getElementById('submit').addEventListener('click', function () {
+            const form = document.querySelector('form');
+            console.log('ok');
+            form.submit();
+        });
     </script>
 </body>
 </html>

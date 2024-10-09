@@ -13,10 +13,8 @@ class Discount(models.Model):
 
         try:
             if self.used:
-                print('used')
                 return False
             elif self.end_date and self.end_date <= timezone.now() :
-                print('expired')
                 return False
             else:
                 return True

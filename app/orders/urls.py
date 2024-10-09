@@ -1,10 +1,7 @@
 from django.urls import path
-from app.orders.views import orderSuccessViews, orderViews
+from app.orders import views
 
 urlpatterns = [
-    path('validate_discount_code/', orderViews.validate_discount_code, name='validate_discount_code'),
-    path('order/', orderViews.create_order, name='create_order'),
-    path('order/success/<int:pk>/', orderSuccessViews.order_success, name='order_success'),
-    path('order/success/<int:pk>/<str:status>/', orderSuccessViews.update_status, name='update_status'),
-    path('order/success/<int:pk>/', orderSuccessViews.cancel_order, name='cancel_order'),
+    path('validate_discount_code/', views.validate_discount_code, name='validate_discount_code'),
+    path('order/', views.create_order, name='create_order'),
 ]

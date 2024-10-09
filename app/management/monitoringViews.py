@@ -6,7 +6,7 @@ from app.orders.models import Order
 def monitoring(request):
 
     if request.method == 'POST':
-        orders = Order.objects.filter(status = 'Your order is being prepared')
+        orders = Order.objects.filter(status = 'Your order is being prepared' or "Processing")
 
         ordersList = []
         for order in orders:

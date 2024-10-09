@@ -12,15 +12,14 @@ def generate_earning_report(request):
     print('generate_earning_report')
 
     if request.method == 'POST':
-        orders = Order.objects.all()
-        print('filterLoaded')
+        orders = Order.objects.exclude(status="Cancelled")
         #get filters
         data = json.loads(request.body)
 
         todayDate = date.today()
 
         month = int(data.get('month'))
-        orders = Order.objects.annotate(month=ExtractMonth('order_time')).filter(month = month)
+        orders = orders.annotate(month=ExtractMonth('order_time')).filter(month = month)
 
         region = data.get('region')
         if(region != 'All'):

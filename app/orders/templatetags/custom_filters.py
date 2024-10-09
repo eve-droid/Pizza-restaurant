@@ -31,3 +31,12 @@ def get_ingredients(pizza_id):
         return pizza.get_ingredients()
     except Pizza.DoesNotExist:
         return []
+    
+@register.filter
+def check_if_vegetarian(pizza_id):
+    # Check if the pizza is vegetarian
+    try:
+        pizza = Pizza.objects.get(id=pizza_id)
+        return pizza.check_if_vegetarian()
+    except Pizza.DoesNotExist:
+        return False
