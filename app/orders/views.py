@@ -67,6 +67,8 @@ def create_order(request):
 
 def calculate_total_price(request, order):
 
+    eligible_for_loyalty_discount = order.customer.is_eligible_for_discount() #check if eleigible before calling update_order_items bc customer.count_pizza is updated there
+
     print(order.items.all())
     update_order_items(request, order)
     print(order.items.all())
@@ -77,7 +79,7 @@ def calculate_total_price(request, order):
     print(order.price)
     check_BD(order)
     print(order.price)
-    loyaltyDiscount(order)
+    loyaltyDiscount(order, eligible_for_loyalty_discount)
     apply_discount(request, order)
 
 
@@ -133,10 +135,10 @@ def check_BD(order):
         customer.save()
 
 
-def loyaltyDiscount(order):
+def loyaltyDiscount(order, eligible_for_loyalty_discount):
     customer = order.customer
 
-    if customer.is_eligible_for_discount():
+    if eligible_for_loyalty_discount:
         order.price *= Decimal(0.9)
         customer.count_pizza %= 10
         customer.save()
