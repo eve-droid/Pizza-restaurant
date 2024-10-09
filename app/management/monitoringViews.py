@@ -1,12 +1,13 @@
 from django.http import JsonResponse
 from django.shortcuts import render
 from app.orders.models import Order
+from django.db.models import Q
 
 
 def monitoring(request):
 
     if request.method == 'POST':
-        orders = Order.objects.filter(status = 'Your order is being prepared' or "Processing")
+        orders = Order.objects.filter(Q(status = 'Your order is being prepared') | Q(status = 'Processing'))
 
         ordersList = []
         for order in orders:
