@@ -1,32 +1,37 @@
 import json
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
-from app.delivery.models import Delivery
-from app.orders.models import Order
+from django.shortcuts import  render
 
+from app.delivery.services.deliveryPersonService import DeliveryPersonService
+from app.delivery.services.deliveryService import DeliveryService
+from app.orders.services.orderServiceFactory import ServiceFactory
+
+factory = ServiceFactory()
+order_service = factory.create_order_service()
+delivery_service = DeliveryService()
+deliveryPerson_service = DeliveryPersonService()
 
 def order_success(request, pk):
-    order = get_object_or_404(Order, pk=pk)
+    order = order_service.get_order_by_id(pk)
 
     if request.method == 'POST':
         ##
-        delivery = Delivery.objects.filter(order_id=order.id).first()
+        delivery = delivery_service.get_delivery_by_order(order)
 
         data = json.loads(request.body)
         status = data.get('status')
 
         if status == 'Cancelled':
-            cancel_order(order.id)
+            order_service.cancel_order(order.id)
         else:
-            update_status(order.id)
+            order_service.update_order_status(order.id)
 
     else:
-        delivery = Delivery.objects.create(order_id=order.id)
-        delivery.set_delivery_time()
-        delivery.assign_delivery_person(order)
+        delivery = delivery_service.create_delivery(order)
+        delivery_service.set_delivery_time(delivery)
+        deliveryPerson_service.assign_delivery_person(delivery, order)
 
-    print(order.items.all())
-    print(order)
+
     return render(request, 'delivery/orderSuccess.html', {
         'order': order,
         'order_time': order.order_time,
@@ -34,26 +39,7 @@ def order_success(request, pk):
         'delivery_person': delivery.delivery_person, 
     })
 
-def update_status(order_id):
 
-    try:
-        order = get_object_or_404(Order, id = order_id)
-        order.auto_update_order_status()
-        print(order.status)
-
-        return JsonResponse({'status': 'success'})
-    except Order.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': 'Order not found'})
-
-
-def cancel_order(order_id):
-    order = get_object_or_404(Order, id=order_id)
-    try:
-        order.cancel_order()
-        order.save()
-        return JsonResponse({'success': True, 'message': 'Order cancelled successfully.'})
-    except ValueError as e:
-        return JsonResponse({'success': False, 'error': str(e)})
     
 
 

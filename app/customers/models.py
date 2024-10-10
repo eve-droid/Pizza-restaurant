@@ -17,12 +17,3 @@ class Customer(models.Model):
 
     def __str__(self):
         return self.name
-
-    def is_eligible_for_discount(self):
-        return self.count_pizza >= 10
-
-    def is_birthday_today(self):
-        print(self.last_BD_gift != datetime.now().date())
-        print(self.birthday == datetime.now().strftime('%m-%d'))
-        # compare the dates without year
-        return self.birthday.strftime('%m-%d') == datetime.now().strftime('%m-%d') and (self.last_BD_gift is None or self.last_BD_gift != datetime.now().date())

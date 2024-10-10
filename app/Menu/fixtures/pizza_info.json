@@ -1,6 +1,6 @@
 [
     {
-      "model": "orders.pizza",
+      "model": "Menu.pizza",
       "pk": 1,
       "fields": {
         "name": "Margherita",
@@ -9,7 +9,7 @@
     },
 
     {
-      "model": "orders.pizza",
+      "model": "Menu.pizza",
       "pk": 2,
       "fields": {
         "name": "Pepperoni",
@@ -18,7 +18,7 @@
     },
 
     {
-      "model": "orders.pizza",
+      "model": "Menu.pizza",
       "pk": 3,
       "fields": {
         "name": "Vegetarian",
@@ -27,7 +27,7 @@
     },
 
     {
-      "model": "orders.pizza",
+      "model": "Menu.pizza",
       "pk": 4,
       "fields": {
         "name": "Hawaiian",
@@ -36,7 +36,7 @@
     },
 
     {
-      "model": "orders.pizza",
+      "model": "Menu.pizza",
       "pk": 5,
       "fields": {
         "name": "Meat Lovers",
@@ -45,7 +45,7 @@
     },
 
     {
-      "model": "orders.pizza",
+      "model": "Menu.pizza",
       "pk": 6,
       "fields": {
         "name": "Supreme",
@@ -54,7 +54,7 @@
     },
 
     {
-      "model": "orders.pizza",
+      "model": "Menu.pizza",
       "pk": 7,
       "fields": {
         "name": "BBQ Chicken",
@@ -63,7 +63,7 @@
     },
 
     {
-      "model": "orders.pizza",
+      "model": "Menu.pizza",
       "pk": 8,
       "fields": {
         "name": "Seafood",
@@ -72,7 +72,7 @@
     },
 
     {
-      "model": "orders.pizza",
+      "model": "Menu.pizza",
       "pk": 9,
       "fields": {
         "name": "Deluxe",
@@ -81,7 +81,7 @@
     },
 
     {
-      "model": "orders.pizza",
+      "model": "Menu.pizza",
       "pk": 10,
       "fields": {
         "name": "Calzone",

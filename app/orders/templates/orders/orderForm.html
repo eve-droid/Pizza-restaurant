@@ -64,7 +64,7 @@
                         {% for pizza in pizzas %}
                         <tr>
                             <td>
-                                <strong>{{ pizza.name }}</strong>
+                                <strong>{{pizza.name }}</strong>
                             </td>
                             <td>
                                 <strong>{{ pizza.ingredients }}</strong>
@@ -74,7 +74,7 @@
                                 <span class="ingredient-info" data-toggle="tooltip" title="{{ ingredient_info }}"></span>
                             </td>
                             <td>
-                                <span class="fw-bold">{{ pizza.calculate_price }}</span>
+                                <span class="fw-bold">{{ pizza|calculate_price }}</span>
                             </td>
                             <td>
                                 <input type="number" name="pizzaQuantities[{{ pizza.id }}]" min="0" value="0" class="form-control" data-price="{{ pizza.price }}"/>
@@ -208,8 +208,10 @@
                 //go over all the quantity inputs and calculate the total price
                 //if the customer is eligible for free items, keep track of the cheapest pizza and drink
                 quantityInputs.forEach(input => {
+                    console.log(input);
                     const quantity = parseInt(input.value);
                     const price = parseFloat(input.getAttribute('data-price'));
+                    console.log(price);
                     const itemName = input.closest('tr').querySelector('strong').textContent;
                     const pizzaNames = ['Margherita', 'Pepperoni', 'Vegetarian', 'Hawaiian', 'Meat Lovers', 'Supreme', 'BBQ Chicken', 'Seafood', 'Deluxe', 'Calzone'];
                     const drinkNames = ['Water', 'Cola', 'Orange Juice', 'Red Bull', 'Beer'];
@@ -259,6 +261,7 @@
                     //check if a pizza is in the list
                     if (cheapestPizzaIndex !== -1) {
                         const cheapestPizzaItem = listItems[cheapestPizzaIndex];
+                        console.log(cheapestPizzaIndex);
                         totalPrice -= cheapestPizzaPrice;  // Subtract the price of the free pizza
                         const quantityText = cheapestPizzaItem.textContent.match(/x(\d+)/);
                         const quantity = quantityText ? parseInt(quantityText[1]) : 1;

@@ -1,7 +1,9 @@
 from django import template
+from app.Menu.services.menuService import MenuService
 from app.orders.models import Pizza
 
 register = template.Library()
+menu_service = MenuService()
 
 def test_tag():
     print( "Test successful")
@@ -15,11 +17,10 @@ def get_pizza_ingredients(pizzas, pizza_id):
         return []
 
 @register.filter
-def calculate_price(pizza_id):
+def calculate_price(pizza):
     # Fetch pizza price by pizza_id
     try:
-        pizza = Pizza.objects.get(id=pizza_id)
-        return pizza.calculate_price()
+        return menu_service.calculate_price(pizza)
     except Pizza.DoesNotExist:
         return 'N/A'
     
@@ -28,7 +29,7 @@ def get_ingredients(pizza_id):
     # Get the pizza object using the provided ID
     try:
         pizza = Pizza.objects.get(id=pizza_id)
-        return pizza.get_ingredients()
+        return menu_service.get_pizza_ingredients(pizza)
     except Pizza.DoesNotExist:
         return []
     
@@ -37,6 +38,6 @@ def check_if_vegetarian(pizza_id):
     # Check if the pizza is vegetarian
     try:
         pizza = Pizza.objects.get(id=pizza_id)
-        return pizza.check_if_vegetarian()
+        return menu_service.check_if_vegetarian(pizza)
     except Pizza.DoesNotExist:
         return False

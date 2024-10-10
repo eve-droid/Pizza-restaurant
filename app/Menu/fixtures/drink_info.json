@@ -1,6 +1,6 @@
 [
     {
-      "model": "orders.drink",
+      "model": "Menu.drink",
       "pk": 1,
       "fields": {
         "name": "Water",
@@ -9,7 +9,7 @@
     },
 
     {
-      "model": "orders.drink",
+      "model": "Menu.drink",
       "pk": 2,
       "fields": {
         "name": "Cola",
@@ -18,7 +18,7 @@
     },
 
     {
-      "model": "orders.drink",
+      "model": "Menu.drink",
       "pk": 3,
       "fields": {
         "name": "Orange Juice",
@@ -27,7 +27,7 @@
     },
 
     {
-      "model": "orders.drink",
+      "model": "Menu.drink",
       "pk": 4,
       "fields": {
         "name": "Red Bull",
@@ -36,7 +36,7 @@
     },
 
     {
-      "model": "orders.drink",
+      "model": "Menu.drink",
       "pk": 5,
       "fields": {
         "name": "Beer",

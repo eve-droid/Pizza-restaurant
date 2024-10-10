@@ -19,25 +19,12 @@ class OrderForm(forms.ModelForm):
 
         discount_code = self.cleaned_data.get('discount_code')
 
-        try:
-            order.apply_discount(discount_code)
-        except ValueError as e:
-            raise forms.ValidationError(str(e))
-
         if commit:
             order.save()
 
         return order
     
-class OrderItemFormSet(forms.BaseInlineFormSet):
-    def save(self, commit=True):
-        order_items = super().save(commit=False)
-        for order_item in order_items:
-            order_item.save()
 
-        if commit:
-            self.instance.save()
-        return order_items
     
 # Form to handle ordering pizzas
 class OrderItemForm(forms.ModelForm):

@@ -1,17 +1,23 @@
 from django.http import JsonResponse
 from django.shortcuts import render
-from app.orders.models import Order
-from django.db.models import Q
+
+from app.orders.services.orderServiceFactory import ServiceFactory
 
 
 def monitoring(request):
 
     if request.method == 'POST':
-        orders = Order.objects.filter(Q(status = 'Your order is being prepared') | Q(status = 'Processing'))
+
+        status = ['Your order is being prepared', 'Processing']
+
+        factory = ServiceFactory()
+        order_service = factory.create_order_service()
+
+        orders = order_service.filter_orders_by_status(status)
 
         ordersList = []
         for order in orders:
-            orderItems = order.items.all()
+            orderItems = order_service.get_order_items(order.id)
 
             itemsList = []
             for item in orderItems:

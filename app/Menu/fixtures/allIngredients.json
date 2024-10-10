@@ -1,6 +1,6 @@
 [
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 1,
       "fields": {
         "name": "tomato sauce",
@@ -10,7 +10,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 2,
       "fields": {
         "name": "mozzarella",
@@ -20,7 +20,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 3,
       "fields": {
         "name": "basil",
@@ -30,7 +30,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 4,
       "fields": {
         "name": "pepperoni",
@@ -40,7 +40,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 5,
       "fields": {
         "name": "zucchini",
@@ -50,7 +50,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 7,
       "fields": {
         "name": "eggplant",
@@ -60,7 +60,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 8,
       "fields": {
         "name": "peppers",
@@ -70,7 +70,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 9,
       "fields": {
         "name": "ham",
@@ -80,7 +80,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 10,
       "fields": {
         "name": "pineapple",
@@ -90,7 +90,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 11,
       "fields": {
         "name": "bacon",
@@ -100,7 +100,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 12,
       "fields": {
         "name": "sausage",
@@ -110,7 +110,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 13,
       "fields": {
         "name": "onions",
@@ -120,7 +120,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 14,
       "fields": {
         "name": "mushrooms",
@@ -130,7 +130,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 15,
       "fields": {
         "name": "olives",
@@ -140,7 +140,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 16,
       "fields": {
         "name": "chicken",
@@ -150,7 +150,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 17,
       "fields": {
         "name": "spicy BBQ sauce",
@@ -160,7 +160,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 19,
       "fields": {
         "name": "shrimp",
@@ -170,7 +170,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 20,
       "fields": {
         "name": "clams",
@@ -180,7 +180,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 21,
       "fields": {
         "name": "calamari",
@@ -190,7 +190,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 22,
       "fields": {
         "name": "salami",
@@ -200,7 +200,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 23,
       "fields": {
         "name": "ricotta",
@@ -210,7 +210,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 24,
       "fields": {
         "name": "parmesan",
@@ -220,7 +220,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 25,
       "fields": {
         "name": "pork rings",
@@ -230,7 +230,7 @@
     },
 
     {
-      "model": "orders.All_Ingredients",
+      "model": "Menu.All_Ingredients",
       "pk": 26,
       "fields": {
         "name": "lard",

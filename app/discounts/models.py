@@ -9,18 +9,5 @@ class Discount(models.Model):
     end_date = models.DateTimeField(null=True, blank=True)
 
 
-    def is_valid(self):
-
-        try:
-            if self.used:
-                return False
-            elif self.end_date and self.end_date <= timezone.now() :
-                return False
-            else:
-                return True
-        
-        except Discount.DoesNotExist:
-            print('does not exist')
-            return False
-        
+    
         

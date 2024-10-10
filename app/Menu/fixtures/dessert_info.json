@@ -1,6 +1,6 @@
 [
     {
-      "model": "orders.dessert",
+      "model": "Menu.dessert",
       "pk": 1,
       "fields": {
         "name": "Tiramisu",
@@ -9,7 +9,7 @@
     },
 
     {
-      "model": "orders.dessert",
+      "model": "Menu.dessert",
       "pk": 2,
       "fields": {
         "name": "Ice cream",
@@ -18,7 +18,7 @@
     },
 
     {
-      "model": "orders.dessert",
+      "model": "Menu.dessert",
       "pk": 3,
       "fields": {
         "name": "cake",
@@ -27,7 +27,7 @@
     },
 
     {
-      "model": "orders.dessert",
+      "model": "Menu.dessert",
       "pk": 4,
       "fields": {
         "name": "cookies",

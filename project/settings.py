@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'app.discounts',
     'app.management',
     'app.delivery',
+    'app.Menu',
     'crispy_forms',
     'crispy_bootstrap4',
     
