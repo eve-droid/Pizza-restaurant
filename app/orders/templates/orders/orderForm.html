@@ -68,7 +68,7 @@
                             </td>
                             <td>
                                 <strong>{{ pizza.ingredients }}</strong>
-                                {% if pizza.check_if_vegetarian %}
+                                {% if pizza|check_if_vegetarian %}
                                     <span class="ingredient-info" data-tooltip="Vegetarian">&#9432;</span>
                                 {% endif %}
                                 <span class="ingredient-info" data-toggle="tooltip" title="{{ ingredient_info }}"></span>

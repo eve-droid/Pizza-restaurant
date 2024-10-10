@@ -17,7 +17,8 @@ def generate_earning_report(request):
 
         status = ['Processing', 'Your order is being prepared','Out for Delivery', 'Delivered']
 
-        orders = order_service.filter_orders_by_status(status)#get all orders that were not cancelled
+        orders = order_service.get_all_orders()
+        orders = order_service.filter_orders_by_status(status, orders)#get all orders that were not cancelled
 
         #get filters
         data = json.loads(request.body)

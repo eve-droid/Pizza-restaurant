@@ -1,4 +1,4 @@
-from app.orders.models import OrderItem
+from app.orders.models import Order, OrderItem
 
 
 class OrderItemRepository:
@@ -19,7 +19,7 @@ class OrderItemRepository:
         self._order_items.clear()
 
     def get_order_items(self, order):
-        return order.objects.all()
+        return order.items.all()
     
     def get_pizzas(self, order):
         return order.items.filter(pizza__isnull=False)

@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.shortcuts import render
 
+from app.orders.services.orderItemService import OrderItemService
 from app.orders.services.orderServiceFactory import ServiceFactory
 
 
@@ -12,12 +13,14 @@ def monitoring(request):
 
         factory = ServiceFactory()
         order_service = factory.create_order_service()
+        orderItem_service = OrderItemService()
 
-        orders = order_service.filter_orders_by_status(status)
+        orders = order_service.get_all_orders()
+        orders = order_service.filter_orders_by_status(status, orders)
 
         ordersList = []
         for order in orders:
-            orderItems = order_service.get_order_items(order.id)
+            orderItems = orderItem_service.get_order_items(order)
 
             itemsList = []
             for item in orderItems:

@@ -53,3 +53,6 @@ class OrderItemService:
     
     def get_desserts(self, order):
         return self.orderItemRepository.get_desserts(order)
+    
+    def get_order_items(self, order):
+        return self.orderItemRepository.get_order_items(order)

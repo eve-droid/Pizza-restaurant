@@ -34,10 +34,9 @@ def get_ingredients(pizza_id):
         return []
     
 @register.filter
-def check_if_vegetarian(pizza_id):
+def check_if_vegetarian(pizza):
     # Check if the pizza is vegetarian
     try:
-        pizza = Pizza.objects.get(id=pizza_id)
         return menu_service.check_if_vegetarian(pizza)
     except Pizza.DoesNotExist:
         return False
