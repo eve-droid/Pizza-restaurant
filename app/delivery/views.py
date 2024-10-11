@@ -22,9 +22,9 @@ def order_success(request, pk):
         status = data.get('status')
 
         if status == 'Cancelled':
-            order_service.cancel_order(order.id)
+            order_service.cancel_order(order)
         else:
-            order_service.update_order_status(order.id)
+            order_service.update_order_status(order)
 
     else:
         delivery = delivery_service.create_delivery(order)

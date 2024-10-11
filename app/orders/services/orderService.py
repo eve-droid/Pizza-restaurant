@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
+from django.utils import timezone
 
 
 class OrderService:
@@ -104,7 +105,7 @@ class OrderService:
             delivery.estimated_delivery_time = now + timedelta(minutes=30)  # Update estimated delivery time
 
         # Step 3: Change to "Delivered" once the estimated delivery time is reached
-        elif self.status == 'Out for Delivery' and now >= delivery.estimated_delivery_time:
+        elif order.status == 'Out for Delivery' and now >= delivery.estimated_delivery_time:
             self.deliveryPersonService.delivery_done(delivery)  # Call the method to handle order delivery
             order.status = 'Delivered'
 

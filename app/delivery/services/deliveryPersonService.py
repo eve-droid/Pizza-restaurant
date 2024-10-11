@@ -60,4 +60,4 @@ class DeliveryPersonService:
         deliveryPerson.assigned_orders -= 1
         if deliveryPerson.assigned_orders == 0:
             deliveryPerson.available = True  # Make the delivery person available
-        self.deliveryPersonRepository.save()
+        self.deliveryPersonRepository.save(deliveryPerson)
