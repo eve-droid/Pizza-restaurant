@@ -48,9 +48,9 @@ class DeliveryPersonService:
         if deliveryPerson:  
             print(deliveryPerson.name)
             deliveryPerson.assigned_orders += 1
-            deliveryPerson.available = False  # Immediately mark the delivery person unavailable
+            deliveryPerson.available = False  #immediately mark the delivery person unavailable
             if deliveryPerson.assigned_orders == 1: 
-                deliveryPerson.assigned_time = timezone.now() #set the assigned time (only if it's the first order)
+                deliveryPerson.assigned_time = timezone.now() #set assigned time (only for first order)
             self.deliveryPersonRepository.save(deliveryPerson)
         else:
             raise ValueError("No delivery personnel available for this postal code.")
@@ -59,5 +59,5 @@ class DeliveryPersonService:
     def delivery_done(self, deliveryPerson):
         deliveryPerson.assigned_orders -= 1
         if deliveryPerson.assigned_orders == 0:
-            deliveryPerson.available = True  # Make the delivery person available
+            deliveryPerson.available = True
         self.deliveryPersonRepository.save(deliveryPerson)

@@ -10,7 +10,6 @@ def test_tag():
 
 @register.filter(name='get_pizza_ingredients')
 def get_pizza_ingredients(pizzas, pizza_id):
-    # Fetch pizza ingredients by pizza_id
     try:
         return pizzas[int(pizza_id)]['ingredients']
     except (KeyError, IndexError, ValueError):
@@ -18,7 +17,6 @@ def get_pizza_ingredients(pizzas, pizza_id):
 
 @register.filter
 def calculate_price(pizza):
-    # Fetch pizza price by pizza_id
     try:
         return menu_service.calculate_price(pizza)
     except Pizza.DoesNotExist:
@@ -26,7 +24,7 @@ def calculate_price(pizza):
     
 @register.filter
 def get_ingredients(pizza_id):
-    # Get the pizza object using the provided ID
+    # Get pizza object using provided ID
     try:
         pizza = Pizza.objects.get(id=pizza_id)
         return menu_service.get_pizza_ingredients(pizza)
@@ -35,7 +33,6 @@ def get_ingredients(pizza_id):
     
 @register.filter
 def check_if_vegetarian(pizza):
-    # Check if the pizza is vegetarian
     try:
         return menu_service.check_if_vegetarian(pizza)
     except Pizza.DoesNotExist:

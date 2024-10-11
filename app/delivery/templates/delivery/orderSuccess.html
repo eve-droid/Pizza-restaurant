@@ -50,7 +50,7 @@
     {% endif %}
 
     <h3>Estimated Delivery Time</h3>
-    <p>Estimated Delivery Time: <span id="estimated-delivery-time"></span></p> <!-- Empty span for JavaScript to fill -->
+    <p>Estimated Delivery Time: <span id="estimated-delivery-time"></span></p> 
     
 
     <!-- Cancel Order Button -->
@@ -63,21 +63,19 @@
         const orderTime = new Date("{{ order_time|date:'c' }}");
         const currentTime = new Date();
     
-        // Time intervals for each status change (in milliseconds)
-        const makingTime = 5 * 60 * 1000; // 5 minutes
-        const outForDeliveryTime = 20 * 60 * 1000; // 5 + 15 minutes
-        const deliveredTime = 30 * 60 * 1000; // Total 30 minutes
+        //ttime intervals in milliseconds, which updates order status
+        const makingTime = 5 * 60 * 1000;
+        const outForDeliveryTime = 20 * 60 * 1000;
+        const deliveredTime = 30 * 60 * 1000;
     
-        // Calculate the times for each status change
         const makingEndTime = new Date(orderTime.getTime() + makingTime);
         const outForDeliveryEndTime = new Date(orderTime.getTime() + outForDeliveryTime);
         const deliveredEndTime = new Date(orderTime.getTime() + deliveredTime);
     
-        // Calculate the order time plus 5 minutes for hiding cancel button
         const orderTimePlusFive = new Date(orderTime);
         orderTimePlusFive.setMinutes(orderTime.getMinutes() + 5);
     
-        // Hide the cancel button if more than 5 minutes have passed
+        //cancel button is only available for the first 5 mins
         if (currentTime > orderTimePlusFive) {
             const cancelOrderButton = document.getElementById("cancel");
             cancelOrderButton.style.display = "none";
@@ -88,16 +86,15 @@
                 removeOrderButton.style.display = "none";
             }, timeRemaining);
         }
-    
-        // Function to update the order status
+
         function updateOrderInDB(status) {
-            const orderId = "{{ order.id }}"; // Assuming order ID is available in the template
+            const orderId = "{{ order.id }}";
 
             fetch("{% url 'order_success' order.id %}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}' // Ensure CSRF token is included
+                    'X-CSRFToken': '{{ csrf_token }}'
                 },
                 body: JSON.stringify({
                     status: status, 
@@ -112,23 +109,22 @@
 
             if (currentTime >= deliveredEndTime) {
                 orderStatusElement.textContent = "Delivered";
-                updateOrderInDB("Delivered"); // Update the DB
+                updateOrderInDB("Delivered");
             } else if (currentTime >= outForDeliveryEndTime) {
                 orderStatusElement.textContent = "Out for Delivery";
-                updateOrderInDB("Out for Delivery"); // Update the DB
+                updateOrderInDB("Out for Delivery");
             } else if (currentTime >= makingEndTime) {
                 orderStatusElement.textContent = "Your order is being prepared";
-                updateOrderInDB("Being Prepared"); // Update the DB
+                updateOrderInDB("Being Prepared");
             } else {
                 orderStatusElement.textContent = "Processing";
-                updateOrderInDB("Processing"); // Update the DB
+                updateOrderInDB("Processing");
             }
         }
 
         updateOrderStatus();
     
     
-        // Update the status at each specific time point
         setTimeout(() => {
             document.getElementById("order-status").textContent = "Your order is being prepared";
             updateOrderInDB("Your order is being prepared");
@@ -147,9 +143,8 @@
 
     <!-- Script for displaying the estimated delivery time -->
     <script>
-        const estimatedDeliveryTime = new Date(orderTime.getTime() + 30 * 60 * 1000); // 30 minutes after order time
+        const estimatedDeliveryTime = new Date(orderTime.getTime() + 30 * 60 * 1000);
 
-        // Function to format the time (HH:MM:SS)
         function formatTime(date) {
             const hours = String(date.getHours()).padStart(2, '0');
             const minutes = String(date.getMinutes()).padStart(2, '0');
@@ -157,19 +152,16 @@
             return `${hours}:${minutes}:${seconds}`;
         }
 
-        // Display the estimated delivery time in the appropriate element
         document.getElementById("estimated-delivery-time").textContent = formatTime(estimatedDeliveryTime);
     </script>
     
-    <!-- Script for canceling the order with a confirmation prompt -->
     <script>
         document.getElementById("cancel").addEventListener("click", function() {
-            // Confirmation prompt
             if (!confirm("Are you sure you want to cancel the order?")) {
                 return;
             }
 
-            // Send cancellation request
+            
             fetch("{% url 'order_success' order.id %}", {
                 method: "POST",
                 headers: {

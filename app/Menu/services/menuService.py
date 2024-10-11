@@ -32,8 +32,8 @@ class MenuService:
     
     
     def calculate_price(self, pizza):
-        # Calculate price of a pizza based on the ingredients
-        pizza.price = Decimal(0.2)  # Price of flour for the pizza base
+        #calculate price of a pizza based on its ingredients
+        pizza.price = Decimal(0.2)  #price of flour for pizza base
 
         for ingredient in self.pizzaRepository.get_pizza_ingredients(pizza):
             pizza.price += self.ingredients_service.get_ingredient_price(ingredient)
@@ -46,7 +46,7 @@ class MenuService:
     
 
     def check_if_vegetarian(self, pizza):
-        # Check if the pizza is vegetarian
+        #check if pizza is vegetarien
         for ingredient_name in self.pizzaRepository.get_pizza_ingredients(pizza):
             ingredient = self.ingredients_service.get_ingredient_by_name(ingredient_name)
             if ingredient.vegetarian == False:

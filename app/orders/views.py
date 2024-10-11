@@ -66,7 +66,7 @@ def create_order(request):
 
 def calculate_total_price(request, order):
 
-    eligible_for_loyalty_discount = customer_service.is_eligible_for_discount(order.customer) #check if eleigible before calling update_order_items bc customer.count_pizza is updated there
+    eligible_for_loyalty_discount = customer_service.is_eligible_for_discount(order.customer) #check if eleigible before calling update_order_items because customer.count_pizza is updated there
 
     customer = order.customer
     quantities = request.POST
@@ -74,12 +74,12 @@ def calculate_total_price(request, order):
 
     order_service.get_total_price(order)
 
-    order_service.apply_BD_gift(order) #apply free gifts if BD
+    order_service.apply_BD_gift(order) #apply free gifts if Bday
 
-    order_service.loyaltyDiscount(order, eligible_for_loyalty_discount)#apply loyalty discount if eligible
+    order_service.loyaltyDiscount(order, eligible_for_loyalty_discount)
 
-    discount_code = request.POST.get('discountCode', '').strip() #get discount code from the form
-    order_service.apply_discount(order, discount_code) #apply discound if any
+    discount_code = request.POST.get('discountCode', '').strip()
+    order_service.apply_discount(order, discount_code)
 
 
 

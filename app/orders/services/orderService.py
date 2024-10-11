@@ -46,7 +46,6 @@ class OrderService:
     
     
     def get_total_price(self, order):
-        # Calculate total price of the order
         order.price = 0
 
         pizzas = self.orderItemService.get_pizzas(order)
@@ -94,19 +93,17 @@ class OrderService:
         delivery = self.deliveryService.get_delivery_by_order(order)
         print(time_since_order)
 
-        # Step 1: After 5 minutes, change from "Processing" to "Your Order is being prepared"
+        #goes from processing to preparing to out for delivery to delivered in 30 mins total
         if order.status == 'Processing' and time_since_order > timedelta(minutes=5):
             order.status = 'Your Order is being prepared'
             print(order.status)
 
-        # Step 2: After 15 minutes (total 20 mins), change from "Your Order is being prepared" to "Out for Delivery"
         elif order.status == 'Your Order is being prepared' and time_since_order > timedelta(minutes=20):
             order.status = 'Out for Delivery'
             delivery.estimated_delivery_time = now + timedelta(minutes=30)  # Update estimated delivery time
 
-        # Step 3: Change to "Delivered" once the estimated delivery time is reached
         elif order.status == 'Out for Delivery' and now >= delivery.estimated_delivery_time:
-            self.deliveryPersonService.delivery_done(delivery.delivery_person)  # Call the method to handle order delivery
+            self.deliveryPersonService.delivery_done(delivery)  # Call the method to handle order delivery
             order.status = 'Delivered'
 
         self.orderRepository.update_order(order)

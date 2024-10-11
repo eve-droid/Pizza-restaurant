@@ -65,7 +65,7 @@
                         const row = document.createElement('tr');
                         row.setAttribute('data-order-id', order.id);  
                         
-                        // Generate the list of items in the format "Margherita x 2"
+                        //generate list of items in the format "Margherita x 2"
                         const itemsList = order.items.map(item => `${item.name} x ${item.quantity}`).join(', ');
 
                         row.innerHTML = `

@@ -11,8 +11,8 @@
     white-space: nowrap;
     font-size: 12px;
     z-index: 10;
-    margin-left: 5px; /* Adds a small space between the icon and the tooltip */
-    visibility: visible; /* Ensure visibility on hover */
+    margin-left: 5px; /*add small space between icon and tooltip */
+    visibility: visible;
     opacity: 1;
 }
 .ingredient-info {
