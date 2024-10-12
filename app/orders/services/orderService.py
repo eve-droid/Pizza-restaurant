@@ -67,11 +67,11 @@ class OrderService:
         if discount_code:
             try:
                 discount = self.discountService.get_discount_by_code(discount_code)
-                if discount.is_valid() and not order.has_discount_code:
+                if self.discountService.is_valid(discount) and not order.has_discount_code:
                     order.price *= Decimal(1 - discount.percentage / 100)
                     discount.used = True
                     order.has_discount_code = True
-                    order.discountService.update_discount(discount)
+                    self.discountService.update_discount(discount)
                 elif order.has_discount_code:
                     print('A discount code has already been applied.')
             except Exception:

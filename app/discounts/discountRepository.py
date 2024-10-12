@@ -6,7 +6,7 @@ class DiscountRepository:
         self = self
 
     def get_discount_by_code(self, code):
-        return Discount.objects.get(code=code)
+        return Discount.objects.get(discount_code=code)
 
-    def save(self):
-        return self.save()
+    def save(self, order):
+        return order.save()

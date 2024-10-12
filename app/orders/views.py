@@ -93,7 +93,7 @@ def validate_discount_code(request):
 
     try:
         discount = discount_service.get_discount_by_code(code)
-        if discount.is_valid() and not has_discount_code:
+        if discount_service.is_valid(discount) and not has_discount_code:
             return JsonResponse({'valid': True, 'percentage': float(discount.percentage)})
         elif has_discount_code:
             return JsonResponse({'valid': False, 'message': 'A discount code has already been applied.'})

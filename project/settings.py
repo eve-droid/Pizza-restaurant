@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'app.management',
     'app.delivery',
     'app.Menu',
+    'django_extensions',
     'crispy_forms',
     'crispy_bootstrap4',
     
