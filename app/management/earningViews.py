@@ -20,26 +20,22 @@ def generate_earning_report(request):
         orders = order_service.get_all_orders()
         orders = order_service.filter_orders_by_status(status, orders)#get all orders that were not cancelled
 
-        #get filters
+        #get different filters (age, month, region etc.)
         data = json.loads(request.body)
 
         todayDate = date.today()
 
-        #filter by month
         month = int(data.get('month'))
         orders = order_service.filter_orders_by_month(month, orders)
 
-        #filter by region
         region = data.get('region')
         if(region != 'All'):
             orders = order_service.filter_orders_by_region(region, orders)
 
-        #filter by gender
         gender = data.get('gender')
         if(gender != 'All'):
             orders = order_service.filter_orders_by_gender(gender, orders)
 
-        #filter by age
         age_min = int(data.get('ageFrom'))
         latestBirthday = todayDate.replace(year=todayDate.year - age_min-1) 
         age_max = int(data.get('ageTo'))

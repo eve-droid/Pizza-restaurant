@@ -21,5 +21,5 @@ class CustomerService:
     def is_birthday_today(self, customer):
         print(customer.last_BD_gift != datetime.now().date())
         print(customer.birthday == datetime.now().strftime('%m-%d'))
-        # compare the dates without year
+        # compare dates without the year
         return customer.birthday.strftime('%m-%d') == datetime.now().strftime('%m-%d') and (customer.last_BD_gift is None or customer.last_BD_gift != datetime.now().date())

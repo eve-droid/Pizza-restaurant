@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from .forms import CustomUserCreationForm
-from .models import Customer  # Import the Customer model
+from .models import Customer
 
 def register(request):
     if request.method == 'POST':
@@ -9,8 +9,8 @@ def register(request):
         if form.is_valid():
             user = form.save()
             
-            login(request, user)  # Automatically log the user in after registration
-            return redirect('create_order')  # Redirect to the main page after registration
+            login(request, user)  # Automatically logs in after registration
+            return redirect('create_order')  # Redirect to ordering page after registration
     else:
         form = CustomUserCreationForm()
     

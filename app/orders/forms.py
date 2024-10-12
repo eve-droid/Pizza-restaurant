@@ -40,6 +40,6 @@ OrderItemFormSet = forms.inlineformset_factory(
     Order,
     OrderItem,
     form=OrderItemForm,
-    extra=1,  # Number of empty forms
-    can_delete=True  # Allow removing pizzas from the order
+    extra=1,  #no. of empty forms
+    can_delete=True
 )

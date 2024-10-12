@@ -7,7 +7,7 @@ from app.Menu.models import Pizza, Drink, Dessert
 class Order(models.Model):
     Status_Choices = [
         ('Processing', 'Processing'),
-        ('Your Order is being prepared', 'Your Order is being prepared'),  # Added new status for Your Order is being prepared
+        ('Your Order is being prepared', 'Your Order is being prepared'),
         ('Out for Delivery', 'Out for Delivery'),
         ('Delivered', 'Delivered'),
         ('Cancelled', 'Cancelled')
@@ -25,7 +25,7 @@ class OrderItem(models.Model):
     pizza = models.ForeignKey('Menu.Pizza', null=True, blank=True, on_delete=models.CASCADE)
     drink = models.ForeignKey('Menu.Drink', null=True, blank=True, on_delete=models.CASCADE)
     dessert = models.ForeignKey('Menu.Dessert', null=True, blank=True, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)  # Pizza quantity
+    quantity = models.PositiveIntegerField(default=1)
 
     def __str__(self):
         if self.pizza is not None:

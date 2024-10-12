@@ -181,7 +181,7 @@
     </script>
     <script>
 
-        //dynamic summary of the order while ordering
+        //dynamic summary of order while ordering
         document.addEventListener('DOMContentLoaded', function () {
             const additionalDiscount = document.getElementById('additionalDiscountInput').value === 'true';
             const freeItems = document.getElementById('freeItems').value === 'true';
@@ -231,22 +231,18 @@
                             cheapestDrinkIndex = index;
                         }
 
-                        // add the price of the item * quantity to the total price
                         const itemTotalPrice = quantity * price;
                         totalPrice += itemTotalPrice;
     
-                        // Add the item and its quantity to the summary list
                         const listItem = document.createElement('li');
                         listItem.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
                         listItem.textContent = `${itemName} x${quantity}`;
                         
-                        //add the item total price to the list item
                         const priceSpan = document.createElement('span');
                         priceSpan.classList.add('badge', 'badge-primary', 'badge-pill');
                         priceSpan.textContent = `$${itemTotalPrice.toFixed(2)}`;
                         listItem.appendChild(priceSpan);
 
-                        //keep track of all the item object to later retrieve the cheapest pizza and drink object
                         listItems.push(listItem);
                         
                         orderSummaryElement.appendChild(listItem);
@@ -255,18 +251,17 @@
                     
                 });
                 
-                //if eligible for free items, remove the price of the cheapest pizza and drink from the total price
+                //if eligible for free items, remove price of cheapest pizza and drink from total price
                 if (freeItems){
                     
                     //check if a pizza is in the list
                     if (cheapestPizzaIndex !== -1) {
                         const cheapestPizzaItem = listItems[cheapestPizzaIndex];
                         console.log(cheapestPizzaIndex);
-                        totalPrice -= cheapestPizzaPrice;  // Subtract the price of the free pizza
+                        totalPrice -= cheapestPizzaPrice;
                         const quantityText = cheapestPizzaItem.textContent.match(/x(\d+)/);
                         const quantity = quantityText ? parseInt(quantityText[1]) : 1;
 
-                        //if quantity is 1, modify the item object price and mark it as free
                         if(quantity === 1){
                             const freeBadge = document.createElement('span');
                             freeBadge.classList.add('badge', 'badge-success', 'badge-pill');
@@ -276,7 +271,6 @@
                             console.log('still good');
                             console.log(cheapestPizzaName);
                         } 
-                        //else, remove one quantity from the item project, update the price and add a new item object marked as free
                         else{
                             console.log(cheapestPizzaName);
                             const remainingQuantity = quantity - 1;
@@ -336,32 +330,29 @@
                     }
                 }
 
-                //if elgible for the 10% loyalty discount, apply the discount and update the total price in the summmary
+                //if elgible for the 10% loyalty discount, apply discount and update total price in summmary
                 if(additionalDiscount){
                     totalPrice -= totalPrice * 0.1;  
                     finalPriceWithDiscountElement.textContent = totalPrice.toFixed(2);
                 }
 
-                totalPrice -= totalPrice * discountValue;  // Apply discount if any
-
-                // Update the total price in the summary
+                totalPrice -= totalPrice * discountValue;
                 orderPriceElement.textContent = totalPrice.toFixed(2);
 
             }
     
-            // Listen for changes in the quantity inputs
+            //listen for changes in quantity inputs
             quantityInputs.forEach(input => {
                 input.addEventListener('input', updateOrderSummary);
             });
     
             updateOrderSummary();
 
-            // Listen and  for changes in the discount code input
+            //listen and  for changes in discount code input
             discountCodeInput.addEventListener('input', function () {
                 const code = discountCodeInput.value.trim();
 
                 if (code) {
-                    // validate the discount code
                     fetch(`/validate_discount_code/?code=${code}&has_discount_code=${additionalDiscount}`)
                         .then(response => response.json())
                         .then(data => {
@@ -369,7 +360,7 @@
                                 discountMessage.textContent = `Valid discount: ${data.percentage}% off`;
                                 discountMessage.classList.remove('text-danger');
                                 discountMessage.classList.add('text-success');
-                                discountValue = data.percentage / 100;  // Apply discount
+                                discountValue = data.percentage / 100;
                             } else {
                                 discountMessage.textContent = data.message;
                                 discountMessage.classList.add('text-danger');
@@ -377,7 +368,7 @@
                                 discountValue = 0;  // No discount applied
                             }
 
-                            // call the order summary after discount change to update the total price
+                            //call  order summary after discount change to update the total price
                             updateOrderSummary();
                         })
                         .catch(error => {
@@ -392,7 +383,7 @@
             });
         });
 
-        // check that the order includes at least one pizza to allow submission
+        //check the order includes at least one pizza to allow it to go through
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.querySelector('form');
             const quantityInputs = document.querySelectorAll('input[name^="pizzaQuantities"]');
@@ -400,7 +391,6 @@
             form.addEventListener('submit', function (event) {
                 let pizzaSelected = false;
                 
-                // Check if at least one pizza is selected
                 quantityInputs.forEach(input => {
                     const quantity = parseInt(input.value);
                     if (quantity > 0) {
@@ -408,7 +398,7 @@
                     }
                 });
 
-                // If no pizza selected, dont allow form submission and show an alert
+                //if no pizza is selected, dont allow form submission and show an alert
                 if (!pizzaSelected) {
                     event.preventDefault();
                     alert('Please select at least one pizza to place an order.');

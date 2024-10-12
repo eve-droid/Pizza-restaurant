@@ -9,10 +9,10 @@ class Delivery(models.Model):
 
 class DeliveryPerson(models.Model):
     name = models.CharField(max_length=100)
-    postal_code_area = models.CharField(max_length=100, null = True, default=None)  # Changed to city field
-    available = models.BooleanField(default=True)  # True if they are available for delivery
-    assigned_orders = models.IntegerField(default=0)  # Number of orders they are handling
-    assigned_time = models.DateTimeField(null=True, blank=True)  # Track last delivery time
+    postal_code_area = models.CharField(max_length=100, null = True, default=None)
+    available = models.BooleanField(default=True)
+    assigned_orders = models.IntegerField(default=0)
+    assigned_time = models.DateTimeField(null=True, blank=True)
 
     
     def __str__(self):
